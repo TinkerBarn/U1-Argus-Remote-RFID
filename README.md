@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://<your-github-username>.github.io/U1-Argus-Remote-RFID/"><strong>Open Web Installer</strong></a>
+  <a href="https://tinkerbarn.github.io/U1-Argus-Remote-RFID/"><strong>Open Web Installer</strong></a>
   ·
   <a href="./index.html"><strong>Installer Source In Repo</strong></a>
 </p>
@@ -106,7 +106,7 @@ The firmware release `V1.0` uses:
 
 After publishing GitHub Pages for this repository, the intended installer URL is:
 
-- `https://<your-github-username>.github.io/U1-Argus-Remote-RFID/`
+- `https://tinkerbarn.github.io/U1-Argus-Remote-RFID/`
 
 This repository already includes the prepared installer page and manifest:
 
