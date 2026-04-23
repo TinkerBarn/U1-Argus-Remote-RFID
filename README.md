@@ -131,6 +131,31 @@ Current working sketch:
 
 - [dev/U1_Argus_Remote_RFID_current.ino](./dev/U1_Argus_Remote_RFID_current.ino)
 
+### Arduino IDE
+
+If you want to build or flash the source manually in Arduino IDE, install:
+
+#### Board Package
+
+- **ESP32 by Espressif Systems**
+
+Recommended target board for this project:
+
+- **ESP32C3 Dev Module**
+
+#### Required Libraries
+
+- **Adafruit PN532**
+- **ArduinoJson**
+
+#### Recommended First-Flash Option
+
+For the first flash onto a board that previously had other firmware, it is recommended to enable:
+
+- **Erase All Flash Before Sketch Upload**
+
+This helps avoid stale settings in `Preferences`/NVS from older firmware.
+
 ---
 
 ## First Setup On The Device
