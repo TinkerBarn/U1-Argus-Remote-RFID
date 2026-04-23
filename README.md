@@ -74,6 +74,10 @@ Important note:
 - On the common red PN532 breakout boards, **HSU/UART is usually already the default mode**
 - The printed pin labels may still say `SDA` and `SCL`, even though the board is being used in HSU/UART mode
 
+After the ESP32-C3 has been programmed, only a **USB cable for power** is needed.
+
+The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then happens entirely over **Wi-Fi**.
+
 ---
 
 ## Wiring
