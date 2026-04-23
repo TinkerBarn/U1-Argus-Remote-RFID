@@ -1,0 +1,21 @@
+# Arduino IDE
+*.ino.eep
+*.ino.bin
+*.ino.bootloader.bin
+*.ino.map
+
+# Build output
+build/
+dist/
+
+# Local development structure
+dev/
+snapshots/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local notes
+*.log

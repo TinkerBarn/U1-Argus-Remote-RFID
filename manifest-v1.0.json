@@ -1,0 +1,17 @@
+{
+  "name": "U1 Argus Remote RFID V1.0",
+  "version": "1.0",
+  "home_assistant_domain": "",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "firmware/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin",
+          "offset": 0
+        }
+      ]
+    }
+  ]
+}
