@@ -108,22 +108,36 @@ The firmware release `V1.0` uses:
 
 ### Web Installer
 
-After publishing GitHub Pages for this repository, the intended installer URL is:
+Use the web installer to flash the reader directly from the browser:
 
 - `https://tinkerbarn.github.io/U1-Argus-Remote-RFID/`
 
-This repository already includes the prepared installer page and manifest:
+Recommended browser:
 
-- [index.html](./index.html)
-- [manifest-v1.0.json](./manifest-v1.0.json)
+- **Chrome** or **Edge**
 
-The firmware binary should be placed here:
+Recommended steps:
 
-- [firmware/V1.0](./firmware/V1.0/)
+1. Connect the **ESP32-C3 Super Mini** by USB
+2. Open the web installer
+3. Click **Install**
+4. Select the correct serial device
+5. Wait until flashing is finished
 
-Expected filename for the web installer:
+If the board is not detected immediately:
 
-- `U1_Argus_Remote_RFID_V1_0.ino.merged.bin`
+- reconnect the USB cable
+- try Chrome or Edge
+- on some boards, hold **BOOT** while connecting
+
+If the ESP32-C3 needs to be forced into flashing mode:
+
+1. Press and hold **BOOT**
+2. Briefly press **RESET**
+3. Release **RESET**
+4. Release **BOOT**
+
+Then start the flash process again in the web installer.
 
 ### Arduino Source Release
 
