@@ -11,9 +11,6 @@ dist/
 # Local development structure
 dev/
 snapshots/
-docs/
-screenshots/
-docs/
 
 # OS / editor noise
 .DS_Store
