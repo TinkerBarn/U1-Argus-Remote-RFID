@@ -251,6 +251,7 @@ Firmware folder:
 Many thanks and biggest respect to:
 
 - [paxx12](https://github.com/paxx12)
+- [sims](https://github.com/suchmememanyskill)
 - [wasikuss](https://github.com/wasikuss)
 - [baze](https://gitlab.com/baze)
 
