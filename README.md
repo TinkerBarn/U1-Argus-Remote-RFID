@@ -97,7 +97,7 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 | `GPIO3` | `SCL` | HSU TX line to PN532 board |
 | `GPIO4` | `SDA` | HSU RX line from PN532 board |
 
-The firmware release `V1.1` uses:
+The firmware release `V1.0` uses:
 
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
@@ -114,7 +114,7 @@ Use the web installer to flash the reader directly from the browser:
 
 Current web installer release:
 
-- **V1.1**
+- **V1.0**
 
 Recommended browser:
 
@@ -147,14 +147,13 @@ Then start the flash process again in the web installer.
 
 | Version | Status | Source | Firmware |
 | --- | --- | --- | --- |
-| `V1.1` | Current release | [V1.1 source](./releases/V1.1/U1_Argus_Remote_RFID_V1.1.ino) | [firmware/V1.1](./firmware/V1.1/) |
-| `V1.0` | Previous release | [V1.0 source](./releases/V1.0/U1_Argus_Remote_RFID_V1.0.ino) | [firmware/V1.0](./firmware/V1.0/) |
+| `V1.0` | Current release | [V1.0 source](./releases/V1.0/U1_Argus_Remote_RFID_V1.0.ino) | [firmware/V1.0](./firmware/V1.0/) |
 
 ### Arduino Source Release
 
 Release source:
 
-- [releases/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./releases/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
+- [releases/V1.0/U1_Argus_Remote_RFID_V1.0.ino](./releases/V1.0/U1_Argus_Remote_RFID_V1.0.ino)
 
 Current working sketch:
 
@@ -174,6 +173,7 @@ Recommended target board for this project:
 
 #### Required Libraries
 
+- **Adafruit PN532**
 - **ArduinoJson**
 
 #### Recommended First-Flash Option
@@ -183,6 +183,16 @@ For the first flash onto a board that previously had other firmware, it is recom
 - **Erase All Flash Before Sketch Upload**
 
 This helps avoid stale settings in `Preferences`/NVS from older firmware.
+
+#### Serial Monitor
+
+Use **115200 baud** for the serial monitor.
+
+Recommended Arduino IDE setting for ESP32-C3 boards:
+
+- **USB CDC On Boot: Enabled**
+
+The basic boot, Wi-Fi, mDNS, IP, and PN532 status lines are printed through the normal Arduino `Serial` output.
 
 ---
 
@@ -247,31 +257,9 @@ Replace `example` with the hostname you entered in setup.
 
 ---
 
-## Release V1.1
-
-`V1.1` is the current source release.
-
-Highlights:
-
-- Built from the latest working sketch after `V1.0`
-- Smaller firmware by removing the Adafruit PN532 dependency
-- Raw PN532 HSU/UART transport for OpenSpool tag reading
-- Persistent additional-reader setup fields for multi-reader dashboards
-- Standard serial boot, Wi-Fi, mDNS, IP, and PN532 status output remains available
-
-Release source:
-
-- [releases/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./releases/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
-
-Firmware folder:
-
-- [firmware/V1.1](./firmware/V1.1/)
-
----
-
 ## Release V1.0
 
-`V1.0` is the first public release of this repository.
+`V1.0` is the current public release of this repository.
 
 Highlights:
 
