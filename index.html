@@ -89,8 +89,6 @@
     .lang { display: none; }
     .lang.active { display: block; }
     .footer-note { margin-top: 24px; color: var(--muted); font-size: 0.95rem; text-align: center; }
-    .footer-links { margin-top: 18px; color: var(--muted); font-size: 0.95rem; text-align: center; }
-    .footer-links a { margin: 0 6px; }
     @media (max-width: 980px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -137,18 +135,18 @@
         <h2>V1.0</h2>
         <div class="install-box">
           <div class="board">ESP32-C3 Super Mini</div>
-          <esp-web-install-button manifest="./manifest-v1.0.json?v=1"></esp-web-install-button>
+          <esp-web-install-button manifest="./manifest-v1.0.json?v=2"></esp-web-install-button>
           <div class="lang lang-en active">
             <ul>
               <li>Uses the prepared single-version installer manifest for <code>V1.0</code></li>
-              <li>Flashes the firmware image from <code>firmware/V1.0/U1_Argus_Remote_RFID_V1.0.ino.merged.bin</code></li>
+              <li>Flashes the firmware image from <code>firmware/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin</code></li>
               <li>Best used with Chrome or Edge and a data-capable USB cable</li>
             </ul>
           </div>
           <div class="lang lang-de">
             <ul>
               <li>Verwendet das vorbereitete Single-Version-Manifest fuer <code>V1.0</code></li>
-              <li>Flasht das Firmware-Image aus <code>firmware/V1.0/U1_Argus_Remote_RFID_V1.0.ino.merged.bin</code></li>
+              <li>Flasht das Firmware-Image aus <code>firmware/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin</code></li>
               <li>Am besten mit Chrome oder Edge und einem datenfaehigen USB-Kabel verwenden</li>
             </ul>
           </div>
@@ -191,18 +189,6 @@
     </p>
     <p class="footer-note lang lang-de">
       Wenn das Board nicht sofort erkannt wird, bitte erneut verbinden und noch einmal versuchen. Bei manchen Boards muss BOOT beim Verbinden gehalten werden.
-    </p>
-    <p class="footer-links lang lang-en active">
-      U1 Argus Remote RFID Web Installer ·
-      <a href="https://github.com/TinkerBarn/U1-Argus-Remote-RFID" target="_blank" rel="noopener noreferrer">Project Page</a>
-      ·
-      <a href="https://github.com/TinkerBarn" target="_blank" rel="noopener noreferrer">TinkerBarn</a>
-    </p>
-    <p class="footer-links lang lang-de">
-      U1 Argus Remote RFID Web Installer ·
-      <a href="https://github.com/TinkerBarn/U1-Argus-Remote-RFID" target="_blank" rel="noopener noreferrer">Projektseite</a>
-      ·
-      <a href="https://github.com/TinkerBarn" target="_blank" rel="noopener noreferrer">TinkerBarn</a>
     </p>
 
     <p class="footer-note">

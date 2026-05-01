@@ -7,7 +7,6 @@
 # Build output
 build/
 dist/
-.codex_build/
 
 # Local development structure
 dev/

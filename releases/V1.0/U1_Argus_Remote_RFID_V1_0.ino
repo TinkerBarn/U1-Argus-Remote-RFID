@@ -1,5 +1,5 @@
 /*
-  Release sketch: releases/V1.0/U1_Argus_Remote_RFID_V1.0.ino
+  Release sketch: releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino
   Public release: V1.0
 
   U1 Argus Remote RFID - V1.0
