@@ -14,4 +14,4 @@ All public release changes are tracked here.
 
 Release source:
 
-- [releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
+- [source/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/V1.0/U1_Argus_Remote_RFID_V1_0.ino)

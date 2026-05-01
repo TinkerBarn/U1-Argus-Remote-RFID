@@ -141,13 +141,11 @@ Then start the flash process again in the web installer.
 
 ### Arduino Source Release
 
-Release source:
+Public release source:
 
-- [releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
+- [source/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
 
-Current working sketch:
-
-- [dev/U1_Argus_Remote_RFID_current.ino](./dev/U1_Argus_Remote_RFID_current.ino)
+Development iterations are kept in the local `dev/` folder and are intentionally not published.
 
 ### Arduino IDE
 
@@ -173,6 +171,14 @@ For the first flash onto a board that previously had other firmware, it is recom
 - **Erase All Flash Before Sketch Upload**
 
 This helps avoid stale settings in `Preferences`/NVS from older firmware.
+
+### Repository Layout
+
+Public firmware binaries are stored in `firmware/<version>/`.
+
+The matching Arduino source for each public release is stored in `source/<version>/`.
+
+Local development iterations such as `V1.0.1`, `V1.0.2`, and later candidates live in `dev/`, which is ignored by Git and not part of public releases.
 
 ---
 
@@ -252,7 +258,7 @@ Highlights:
 
 Release source:
 
-- [releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./releases/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
+- [source/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
 
 Firmware folder:
 
