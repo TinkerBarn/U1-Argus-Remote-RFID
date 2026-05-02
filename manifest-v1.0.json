@@ -1,6 +1,6 @@
 {
-  "name": "U1 Argus Remote RFID V1.0",
-  "version": "1.0",
+  "name": "U1 Argus Remote RFID",
+  "version": "V1.0",
   "home_assistant_domain": "",
   "new_install_prompt_erase": true,
   "builds": [
