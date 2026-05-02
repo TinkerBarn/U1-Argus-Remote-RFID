@@ -1253,6 +1253,7 @@ static void startPortalAp(bool keepStationMode) {
                 AP_SSID,
                 apIp.toString().c_str(),
                 keepStationMode ? " while Wi-Fi is still connecting" : "");
+  Serial.printf("[PORTAL] Captive portal: http://%s/\n", apIp.toString().c_str());
   debugPrintf("[DEBUG] Setup portal active, captive DNS on %s:%u\n",
               apIp.toString().c_str(),
               DNS_PORT);
@@ -1266,6 +1267,7 @@ static void startPortal() {
 static bool connectSta() {
   if (strlen(gSettings.wifiSsid) == 0) return false;
 
+  Serial.printf("[WIFI] Connecting to SSID=%s\n", gSettings.wifiSsid);
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
   WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
@@ -1296,7 +1298,7 @@ static bool connectSta() {
   }
 
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("\n[WIFI] Connection failed");
+    Serial.printf("\n[WIFI] Connection failed, status=%d\n", (int)WiFi.status());
     if (fallbackPortalStarted) {
       WiFi.setAutoReconnect(false);
       WiFi.disconnect(false);
@@ -1313,6 +1315,7 @@ static bool connectSta() {
   }
 
   Serial.printf("\n[WIFI] Connected: %s\n", WiFi.localIP().toString().c_str());
+  Serial.printf("[WIFI] RSSI=%d dBm, mode=station\n", (int)WiFi.RSSI());
   debugPrintf("[DEBUG] WiFi connected, hostname=%s, target=%s:%u\n",
               gSettings.hostname,
               gSettings.printerIp,
@@ -1786,6 +1789,15 @@ void setup() {
 
   loadSettings();
   gPrinterState.endpoint = printerChannelQueryUrl();
+  Serial.printf("[CONFIG] SSID=%s, pass=%u chars, host=%s%s, printer=%s:%u, channel=%u, tool_head=%u\n",
+                strlen(gSettings.wifiSsid) ? gSettings.wifiSsid : "(empty)",
+                (unsigned)strlen(gSettings.wifiPass),
+                strlen(gSettings.hostname) ? gSettings.hostname : "(empty)",
+                strlen(gSettings.hostname) ? ".local" : "",
+                strlen(gSettings.printerIp) ? gSettings.printerIp : "(empty)",
+                (unsigned)gSettings.printerPort,
+                (unsigned)gSettings.channel,
+                (unsigned)(gSettings.channel + 1));
 
   bool staOk = false;
   if (strlen(gSettings.wifiSsid) > 0) {
@@ -1811,11 +1823,11 @@ void setup() {
       nfc.SAMConfig();
       nfcReady = true;
       Serial.println("[PN532] ready");
-      debugPrintf("[DEBUG] PN532 firmware IC=0x%02lX ver=%lu rev=%lu support=0x%02lX\n",
-                  (version >> 24) & 0xFF,
-                  (version >> 16) & 0xFF,
-                  (version >> 8) & 0xFF,
-                  version & 0xFF);
+      Serial.printf("[PN532] firmware IC=0x%02lX ver=%lu rev=%lu support=0x%02lX\n",
+                    (version >> 24) & 0xFF,
+                    (version >> 16) & 0xFF,
+                    (version >> 8) & 0xFF,
+                    version & 0xFF);
     }
   }
 
