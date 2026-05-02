@@ -97,7 +97,7 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 | `GPIO3` | `SCL` | HSU TX line to PN532 board |
 | `GPIO4` | `SDA` | HSU RX line from PN532 board |
 
-The firmware release `V1.0` uses:
+The firmware release `V1.1` uses:
 
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
@@ -143,7 +143,7 @@ Then start the flash process again in the web installer.
 
 Public release source:
 
-- [source/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
+- [source/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
 
 Development iterations are kept in the local `dev/` folder and are intentionally not published.
 
@@ -240,6 +240,31 @@ Replace `example` with the hostname you entered in setup.
 <p align="center">
   <img src="./assets/screenshots/captive-portal.jpg" alt="Captive portal start screen on first setup" width="430">
 </p>
+
+---
+
+## Release V1.1
+
+`V1.1` is the current public release.
+
+Highlights:
+
+- Better multi-reader dashboard navigation for setups with up to four tool heads
+- Saved additional reader IPs/URLs and Tool Head assignments are loaded correctly
+- Clearer Tool Head wording while still showing matching internal Channel numbers
+- Improved resend logic: the same tag can be resent if the printer channel does not yet match
+- Faster NFC polling while keeping the proven stable PN532 read-window method
+- Better reliability for extended OpenSpool tags by avoiding duplicate page reads and duplicate JSON parsing
+- Earlier setup hotspot fallback while a slow Wi-Fi connection is still being attempted
+- Serial timing log for complete NFC JSON reads
+
+Release source:
+
+- [source/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
+
+Firmware folder:
+
+- [firmware/V1.1](./firmware/V1.1/)
 
 ---
 
