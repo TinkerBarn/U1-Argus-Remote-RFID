@@ -1,79 +1,31 @@
 /*
-  Release sketch: source/V1.1/U1_Argus_Remote_RFID_V1.1.ino
-  Public release: V1.1
+  Release sketch: source/V1.2/U1_Argus_Remote_RFID_V1.2.ino
+  Public release: V1.2
 
-  U1 Argus Remote RFID - V1.1
+  U1 Argus Remote RFID - V1.2
   ---------------------------------
   Target: ESP32-C3 Super Mini + PN532 (HSU/UART)
 
-  Release features:
-  - AP provisioning + Web UI (when no Wi-Fi config or STA connect fails)
+  Core features:
+  - AP provisioning + Web UI when no Wi-Fi config is available or STA connect fails
   - Stores config in Preferences (NVS)
   - mDNS hostname in STA mode
+  - Supports up to three additional reader links in the dashboard
   - Reads NFC tags with PN532
   - Accepts only OpenSpool JSON payload (NDEF MIME: application/json, protocol=openspool)
   - Maps OpenSpool fields to Snapmaker U1 filament_detect/set API
-  - Sends update webhook only when payload changed
+  - Sends update webhook only when the printer channel needs to be updated
+  - Verifies successful printer updates and retries if needed
   - Queries current printer channel state for the dashboard
 
-  Release changes since V1.0:
-  - Shows the configured full mDNS name above language and reader controls.
-  - Fixes loading and display of saved additional reader IPs/URLs.
-  - Removes the redundant current-reader dashboard button.
-  - Shows tool-head numbering as Tool Head 1..4 with matching Channel 0..3.
-  - Redirects the saved/rebooting page back to the dashboard after about 10 seconds.
-  - Reloads the dashboard every 30 seconds so age labels stay fresh.
-  - Adds optional Tool Head assignment for additional reader dashboard links.
-  - Moves the current reader URL into the main status chip row.
-  - Shows the current reader Tool Head in the setup/navigation tile.
-  - Fixes tag resend dedupe so a tag is skipped only after the printer confirms matching channel data.
-  - Improves fast-moving spool reliability by prioritizing NFC polling before slower printer refreshes.
-  - Starts the setup hotspot early while a slow Wi-Fi connection is still being attempted.
-  - Tunes NFC tag detection for better extended OpenSpool reliability.
-  - Reuses pages 4..6 from the capability-container read instead of reading them twice.
-  - Adds one timing log line for complete NFC JSON reads.
-
-  Development history:
-  V1.0.1:
-  - Shows the configured full mDNS name above language and reader controls.
-
-  V1.0.2:
-  - Fixes loading of saved additional reader IPs/URLs from Preferences.
-
-  V1.0.3:
-  - Removes the redundant current-reader dashboard button.
-  - Shows tool-head numbering as Tool Head 1..4 with matching Channel 0..3.
-  - Redirects the saved/rebooting page back to the dashboard after about 10 seconds.
-  - Reloads the dashboard every 30 seconds so age labels stay fresh.
-
-  V1.0.4:
-  - Adds optional Tool Head assignment for additional reader dashboard links.
-  - Keeps additional reader Tool Head selection empty until the user chooses one.
-  - Simplifies setup wording to Tool Head 1..4 while keeping Channel info in the dashboard.
-
-  V1.0.5:
-  - Moves the current reader URL into the main status chip row.
-  - Shows the current reader Tool Head in the setup/navigation tile.
-
-  V1.0.6:
-  - Fixes tag resend dedupe so a tag is skipped only after the printer confirms matching channel data.
-
-  V1.0.7:
-  - Speeds up fast-moving spool reads with shorter polling intervals and NTAG FAST_READ chunks.
-  - Prioritizes NFC polling before slower printer status refreshes.
-
-  V1.0.8:
-  - Reverts NTAG FAST_READ because it can be slower on some PN532/tag combinations.
-  - Keeps faster polling and NFC-first loop order, but uses the proven short READ windows again.
-
-  V1.0.9:
-  - Starts the setup hotspot early while a slow Wi-Fi connection is still being attempted.
-  - Keeps trying STA for a little longer so slow routers can still connect without manual setup.
-
-  V1.0.10:
-  - Tunes NFC tag detection back toward V1.0 timing for better extended OpenSpool reliability.
-  - Reuses pages 4..6 from the capability-container read instead of reading them twice.
-  - Adds one timing log line for complete NFC JSON reads.
+  Release changes (V1.2):
+  - Gives configured Wi-Fi up to 30 seconds before setup hotspot fallback starts.
+  - Adds a device-specific setup hotspot SSID suffix for parallel reader startup.
+  - Adds a small MAC-derived startup delay so multiple readers do not all join Wi-Fi at once.
+  - Keeps checking configured Wi-Fi while setup hotspot is active and returns to STA mode automatically.
+  - Replaces regular full filament_detect polling with light own-motion-sensor polling.
+  - Reads full filament_detect info only on boot sync, feeder activity, valid tag read, SET verification, and slow sync.
+  - Verifies successful SET updates after a short delay and retries up to two times if the printer still differs.
 
   Required libraries:
   - Adafruit PN532
@@ -96,8 +48,8 @@
 
 // ============================== Version ==============================
 static const char* FW_NAME = "U1 Argus Remote RFID";
-static const char* FW_VERSION = "V1.1";
-static const char* FW_ITERATION = "V1.1";
+static const char* FW_VERSION = "V1.2";
+static const char* FW_ITERATION = "V1.2";
 
 // ============================== Debug ==============================
 static const bool SERIAL_DEBUG = true;
@@ -126,14 +78,24 @@ static const int PN532_RESET_PIN = 10;
 static const uint32_t PN532_BAUD = 115200;
 
 // ============================== Timing ==============================
-static const uint32_t WIFI_CONNECT_TIMEOUT_MS = 20000;
-static const uint32_t WIFI_PORTAL_FALLBACK_MS = 3500;
+static const uint32_t WIFI_CONNECT_TIMEOUT_MS = 30000;
+static const uint32_t WIFI_PORTAL_FALLBACK_MS = 30000;
+static const uint32_t WIFI_RECOVERY_RETRY_MS = 15000;
+static const uint32_t WIFI_RECOVERY_ATTEMPT_MS = 6000;
+static const uint32_t WIFI_STARTUP_STAGGER_MAX_MS = 2500;
 static const uint32_t TAG_POLL_MS = 35;
 static const uint32_t TAG_ACTIVE_WINDOW_MS = 1200;
-static const uint32_t PRINTER_QUERY_MS = 3000;
+static const uint32_t PRINTER_MOTION_QUERY_MS = 2500;
+static const uint32_t PRINTER_INFO_SYNC_MS = 90000;
+static const uint32_t PRINTER_FEEDER_INFO_REFRESH_MS = 2500;
+static const uint32_t PRINTER_TAG_INFO_MAX_AGE_MS = 1000;
+static const uint32_t PRINTER_QUERY_JITTER_MS = 450;
 static const uint8_t PRINTER_QUERY_STAGGER_SLOTS = 4;
 static const uint16_t PRINTER_QUERY_TIMEOUT_MS = 700;
-static const uint32_t WEBHOOK_RESEND_GRACE_MS = PRINTER_QUERY_MS + 700;
+static const uint32_t WEBHOOK_VERIFY_DELAY_MS = 1200;
+static const uint32_t WEBHOOK_VERIFY_RETRY_MS = 1800;
+static const uint8_t WEBHOOK_VERIFY_MAX_RETRIES = 2;
+static const uint32_t WEBHOOK_RESEND_GRACE_MS = 6000;
 static const uint16_t PN532_CMD_TIMEOUT_MS = 100;
 static const uint16_t PN532_ACK_TIMEOUT_MS = 10;
 static const uint16_t PN532_TAG_DETECT_TIMEOUT_MS = 50;
@@ -144,7 +106,7 @@ static const size_t NTAG_USER_BYTES = (NTAG_LAST_USER_PAGE - NTAG_FIRST_USER_PAG
 static const uint8_t NTAG_CC_PAGE = 3;
 
 // ============================== Network defaults ==============================
-static const char* AP_SSID = "U1-Argus-Setup";
+static const char* AP_SSID_BASE = "U1-Argus-Setup";
 static const char* AP_PASS = ""; // open AP as requested
 static const uint16_t WEB_PORT = 80;
 static const byte DNS_PORT = 53;
@@ -176,6 +138,8 @@ WebServer web(WEB_PORT);
 DNSServer dnsServer;
 bool portalMode = false;
 bool portalRoutesReady = false;
+bool mdnsRunning = false;
+char apSsid[32] = "";
 
 // ============================== PN532 ==============================
 HardwareSerial PN532Serial(1);
@@ -236,10 +200,22 @@ struct WebhookState {
 uint32_t lastPollMs = 0;
 uint32_t lastTagSeenMs = 0;
 uint32_t tagLedUntilMs = 0;
-uint32_t lastPrinterQueryMs = 0;
+uint32_t nextMotionQueryMs = 0;
+uint32_t nextInfoSyncMs = 0;
+uint32_t lastPrinterInfoQueryMs = 0;
+uint32_t lastFeederInfoQueryMs = 0;
+uint32_t pendingVerifyDueMs = 0;
+uint32_t wifiLostSinceMs = 0;
+uint32_t lastWifiReconnectMs = 0;
+uint32_t lastWifiRecoveryMs = 0;
 uint32_t stateRevision = 1;
 String lastSentFingerprint = "";
 String lastObservedFingerprint = "";
+String pendingVerifyPayload = "";
+String pendingVerifyFingerprint = "";
+String pendingVerifyExpectedWithUid = "";
+String pendingVerifyExpectedNoUid = "";
+uint8_t pendingVerifyRetriesLeft = 0;
 TagState gTagState;
 PrinterChannelState gPrinterState;
 WebhookState gWebhookState;
@@ -254,6 +230,7 @@ static bool uiLangIsDe();
 static const char* tr(const char* en, const char* de);
 static String langToggleHtml(const char* backPath);
 static bool findNdefTlv(const uint8_t* buf, size_t len, size_t& ndefOffset, size_t& ndefLen);
+static String currentPrinterComparableFingerprint();
 
 static void debugPrint(const String& msg) {
   if (!SERIAL_DEBUG) return;
@@ -692,16 +669,32 @@ static uint8_t printerChannelIndex() {
 }
 
 static uint32_t printerQueryPhaseOffsetMs() {
-  return ((uint32_t)printerChannelIndex() * PRINTER_QUERY_MS) / PRINTER_QUERY_STAGGER_SLOTS;
+  return ((uint32_t)printerChannelIndex() * PRINTER_MOTION_QUERY_MS) / PRINTER_QUERY_STAGGER_SLOTS;
+}
+
+static uint32_t printerQueryJitterMs() {
+  return PRINTER_QUERY_JITTER_MS ? (uint32_t)random(PRINTER_QUERY_JITTER_MS + 1) : 0;
+}
+
+static String printerMotionQueryUrl() {
+  String url = String("http://") + gSettings.printerIp + ":" + String(gSettings.printerPort) +
+               "/printer/objects/query?filament_motion_sensor%20e";
+  url += String(printerChannelIndex());
+  url += "_filament=filament_detected";
+  return url;
+}
+
+static String printerFilamentInfoQueryUrl() {
+  String url = String("http://") + gSettings.printerIp + ":" + String(gSettings.printerPort) +
+               "/printer/objects/query?filament_detect=info";
+  url += "&filament_motion_sensor%20e";
+  url += String(printerChannelIndex());
+  url += "_filament=filament_detected";
+  return url;
 }
 
 static String printerChannelQueryUrl() {
-  String url = String("http://") + gSettings.printerIp + ":" + String(gSettings.printerPort) +
-               "/printer/objects/query?filament_detect";
-  url += "&filament_motion_sensor%20e";
-  url += String(printerChannelIndex());
-  url += "_filament";
-  return url;
+  return printerFilamentInfoQueryUrl();
 }
 
 static void storeTagState(const String& openspoolJson,
@@ -743,96 +736,38 @@ static void storeTagState(const String& openspoolJson,
   if (changed) bumpStateRevision();
 }
 
-static void setPrinterStateDisconnected(const char* reason) {
-  bool changed = gPrinterState.wifiConnected ||
-                 gPrinterState.queryOk ||
-                 gPrinterState.error != String(reason ? reason : "");
-  gPrinterState.wifiConnected = false;
-  gPrinterState.queryOk = false;
-  gPrinterState.hasInfo = false;
-  gPrinterState.motionKnown = false;
-  gPrinterState.httpCode = 0;
-  gPrinterState.error = reason ? reason : "";
-  gPrinterState.endpoint = printerChannelQueryUrl();
-  gPrinterState.lastQueryMs = millis();
-  if (changed) bumpStateRevision();
-}
-
-static void updatePrinterStateFromJson(const String& rawResponse, int httpCode) {
-  PrinterChannelState next;
-  next.wifiConnected = true;
-  next.httpCode = httpCode;
-  next.lastQueryMs = millis();
-  next.endpoint = printerChannelQueryUrl();
-
-  JsonDocument doc;
-  DeserializationError err = deserializeJson(doc, rawResponse);
-  if (err) {
-    next.queryOk = false;
-    next.error = "JSON decode failed";
-  } else {
-    JsonObject status = doc["result"]["status"];
-    JsonArray infoArr = status["filament_detect"]["info"];
-    if (!infoArr.isNull() && gSettings.channel < infoArr.size()) {
-      JsonObject info = infoArr[gSettings.channel];
-      next.queryOk = true;
-      next.hasInfo = !info.isNull();
-      next.vendor = info["VENDOR"].is<const char*>() ? String(info["VENDOR"].as<const char*>()) : "";
-      next.manufacturer = info["MANUFACTURER"].is<const char*>() ? String(info["MANUFACTURER"].as<const char*>()) : "";
-      next.mainType = info["MAIN_TYPE"].is<const char*>() ? String(info["MAIN_TYPE"].as<const char*>()) : "";
-      next.subType = info["SUB_TYPE"].is<const char*>() ? String(info["SUB_TYPE"].as<const char*>()) : "";
-      next.cardUidCsv = uidJsonArrayToCsv(info["CARD_UID"]);
-      if (info["RGB_1"].is<int>() || info["RGB_1"].is<long>()) {
-        next.colorHex = rgbIntToHexString(info["RGB_1"].as<int>());
-      }
-      if (info["HOTEND_MIN_TEMP"].is<int>() || info["HOTEND_MIN_TEMP"].is<long>()) next.minTemp = info["HOTEND_MIN_TEMP"].as<int>();
-      if (info["HOTEND_MAX_TEMP"].is<int>() || info["HOTEND_MAX_TEMP"].is<long>()) next.maxTemp = info["HOTEND_MAX_TEMP"].as<int>();
-      if (info["BED_TEMP"].is<int>() || info["BED_TEMP"].is<long>()) next.bedTemp = info["BED_TEMP"].as<int>();
-      if (info["OFFICIAL"].is<bool>()) {
-        next.officialKnown = true;
-        next.official = info["OFFICIAL"].as<bool>();
-      }
-      serializeJson(info, next.rawJson);
-    } else {
-      next.queryOk = false;
-      next.error = "filament_detect.info missing";
-    }
-
-    String sensorKey = String("filament_motion_sensor e") + String(gSettings.channel) + "_filament";
-    JsonVariant sensor = status[sensorKey];
-    if (!sensor.isNull() && sensor["filament_detected"].is<bool>()) {
-      next.motionKnown = true;
-      next.filamentDetected = sensor["filament_detected"].as<bool>();
-    }
-  }
-
+static String printerStateFingerprint(const PrinterChannelState& state) {
   String fingerprint;
   fingerprint.reserve(256);
-  fingerprint += next.vendor;
+  fingerprint += state.vendor;
   fingerprint += '|';
-  fingerprint += next.manufacturer;
+  fingerprint += state.manufacturer;
   fingerprint += '|';
-  fingerprint += next.mainType;
+  fingerprint += state.mainType;
   fingerprint += '|';
-  fingerprint += next.subType;
+  fingerprint += state.subType;
   fingerprint += '|';
-  fingerprint += next.colorHex;
+  fingerprint += state.colorHex;
   fingerprint += '|';
-  fingerprint += next.cardUidCsv;
+  fingerprint += state.cardUidCsv;
   fingerprint += '|';
-  fingerprint += String(next.minTemp);
+  fingerprint += String(state.minTemp);
   fingerprint += '|';
-  fingerprint += String(next.maxTemp);
+  fingerprint += String(state.maxTemp);
   fingerprint += '|';
-  fingerprint += String(next.bedTemp);
+  fingerprint += String(state.bedTemp);
   fingerprint += '|';
-  fingerprint += String(next.motionKnown ? (next.filamentDetected ? 1 : 0) : -1);
+  fingerprint += String(state.motionKnown ? (state.filamentDetected ? 1 : 0) : -1);
   fingerprint += '|';
-  fingerprint += String(next.queryOk ? 1 : 0);
+  fingerprint += String(state.queryOk ? 1 : 0);
   fingerprint += '|';
-  fingerprint += next.error;
-  next.fingerprint = fingerprint;
+  fingerprint += String(state.hasInfo ? 1 : 0);
+  fingerprint += '|';
+  fingerprint += state.error;
+  return fingerprint;
+}
 
+static void commitPrinterState(const PrinterChannelState& next) {
   bool changed = gPrinterState.fingerprint != next.fingerprint ||
                  gPrinterState.queryOk != next.queryOk ||
                  gPrinterState.httpCode != next.httpCode;
@@ -840,13 +775,26 @@ static void updatePrinterStateFromJson(const String& rawResponse, int httpCode) 
   if (changed) bumpStateRevision();
 }
 
-static bool fetchPrinterChannelState() {
+static void setPrinterStateDisconnected(const char* reason) {
+  PrinterChannelState next = gPrinterState;
+  next.wifiConnected = false;
+  next.queryOk = false;
+  next.hasInfo = false;
+  next.motionKnown = false;
+  next.httpCode = 0;
+  next.error = reason ? reason : "";
+  next.endpoint = printerMotionQueryUrl();
+  next.lastQueryMs = millis();
+  next.fingerprint = printerStateFingerprint(next);
+  commitPrinterState(next);
+}
+
+static bool httpGetPrinterUrl(const String& url, String& resp, int& httpCode) {
   if (WiFi.status() != WL_CONNECTED) {
     setPrinterStateDisconnected("Wi-Fi disconnected");
     return false;
   }
 
-  String url = printerChannelQueryUrl();
   debugPrintf("[DEBUG] PRINTER QUERY %s\n", url.c_str());
 
   HTTPClient http;
@@ -856,8 +804,8 @@ static bool fetchPrinterChannelState() {
     return false;
   }
 
-  int httpCode = http.GET();
-  String resp = (httpCode > 0) ? http.getString() : "";
+  httpCode = http.GET();
+  resp = (httpCode > 0) ? http.getString() : "";
   http.end();
 
   debugPrintf("[DEBUG] PRINTER QUERY RESULT ok=%d code=%d body=%s\n",
@@ -865,24 +813,186 @@ static bool fetchPrinterChannelState() {
               httpCode,
               resp.c_str());
 
-  if (httpCode <= 0) {
-    PrinterChannelState next = gPrinterState;
-    next.wifiConnected = true;
+  return httpCode > 0;
+}
+
+static void markPrinterQueryError(const String& url, int httpCode, const char* reason, bool clearInfo) {
+  PrinterChannelState next = gPrinterState;
+  next.wifiConnected = true;
+  next.queryOk = false;
+  if (clearInfo) next.hasInfo = false;
+  next.httpCode = httpCode;
+  next.error = reason ? reason : "query failed";
+  next.endpoint = url;
+  next.lastQueryMs = millis();
+  next.fingerprint = printerStateFingerprint(next);
+  commitPrinterState(next);
+}
+
+static bool updatePrinterMotionStateFromJson(const String& rawResponse, int httpCode, const String& url) {
+  PrinterChannelState next = gPrinterState;
+  next.wifiConnected = true;
+  next.httpCode = httpCode;
+  next.lastQueryMs = millis();
+  next.endpoint = url;
+
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, rawResponse);
+  if (err) {
     next.queryOk = false;
-    next.hasInfo = false;
-    next.httpCode = httpCode;
-    next.error = "HTTP GET failed";
-    next.endpoint = url;
-    next.lastQueryMs = millis();
-    next.fingerprint = String("err|") + String(httpCode);
-    bool changed = gPrinterState.fingerprint != next.fingerprint || gPrinterState.httpCode != next.httpCode;
-    gPrinterState = next;
-    if (changed) bumpStateRevision();
-    return false;
+    next.error = "motion JSON decode failed";
+  } else {
+    JsonObject status = doc["result"]["status"];
+    String sensorKey = String("filament_motion_sensor e") + String(printerChannelIndex()) + "_filament";
+    JsonVariant sensor = status[sensorKey];
+    if (!sensor.isNull() && sensor["filament_detected"].is<bool>()) {
+      next.queryOk = true;
+      next.error = "";
+      next.motionKnown = true;
+      next.filamentDetected = sensor["filament_detected"].as<bool>();
+    } else {
+      next.queryOk = false;
+      next.error = "motion sensor missing";
+    }
   }
 
-  updatePrinterStateFromJson(resp, httpCode);
+  next.fingerprint = printerStateFingerprint(next);
+  commitPrinterState(next);
   return gPrinterState.queryOk;
+}
+
+static bool updatePrinterInfoStateFromJson(const String& rawResponse, int httpCode, const String& url) {
+  PrinterChannelState next = gPrinterState;
+  next.wifiConnected = true;
+  next.httpCode = httpCode;
+  next.lastQueryMs = millis();
+  next.endpoint = url;
+
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, rawResponse);
+  if (err) {
+    next.queryOk = false;
+    next.hasInfo = false;
+    next.error = "filament JSON decode failed";
+    next.rawJson = "";
+  } else {
+    JsonObject status = doc["result"]["status"];
+    JsonArray infoArr = status["filament_detect"]["info"];
+    if (!infoArr.isNull() && printerChannelIndex() < infoArr.size()) {
+      JsonObject info = infoArr[printerChannelIndex()];
+      next.queryOk = true;
+      next.hasInfo = !info.isNull();
+      next.error = "";
+      next.vendor = info["VENDOR"].is<const char*>() ? String(info["VENDOR"].as<const char*>()) : "";
+      next.manufacturer = info["MANUFACTURER"].is<const char*>() ? String(info["MANUFACTURER"].as<const char*>()) : "";
+      next.mainType = info["MAIN_TYPE"].is<const char*>() ? String(info["MAIN_TYPE"].as<const char*>()) : "";
+      next.subType = info["SUB_TYPE"].is<const char*>() ? String(info["SUB_TYPE"].as<const char*>()) : "";
+      next.cardUidCsv = uidJsonArrayToCsv(info["CARD_UID"]);
+      next.colorHex = "";
+      if (info["RGB_1"].is<int>() || info["RGB_1"].is<long>()) {
+        next.colorHex = rgbIntToHexString(info["RGB_1"].as<int>());
+      }
+      next.minTemp = -1;
+      next.maxTemp = -1;
+      next.bedTemp = -1;
+      if (info["HOTEND_MIN_TEMP"].is<int>() || info["HOTEND_MIN_TEMP"].is<long>()) next.minTemp = info["HOTEND_MIN_TEMP"].as<int>();
+      if (info["HOTEND_MAX_TEMP"].is<int>() || info["HOTEND_MAX_TEMP"].is<long>()) next.maxTemp = info["HOTEND_MAX_TEMP"].as<int>();
+      if (info["BED_TEMP"].is<int>() || info["BED_TEMP"].is<long>()) next.bedTemp = info["BED_TEMP"].as<int>();
+      next.officialKnown = false;
+      next.official = false;
+      if (info["OFFICIAL"].is<bool>()) {
+        next.officialKnown = true;
+        next.official = info["OFFICIAL"].as<bool>();
+      }
+      next.rawJson = "";
+      serializeJson(info, next.rawJson);
+    } else {
+      next.queryOk = false;
+      next.hasInfo = false;
+      next.error = "filament_detect.info missing";
+      next.rawJson = "";
+    }
+
+    String sensorKey = String("filament_motion_sensor e") + String(printerChannelIndex()) + "_filament";
+    JsonVariant sensor = status[sensorKey];
+    if (!sensor.isNull() && sensor["filament_detected"].is<bool>()) {
+      next.motionKnown = true;
+      next.filamentDetected = sensor["filament_detected"].as<bool>();
+    }
+  }
+
+  next.fingerprint = printerStateFingerprint(next);
+  commitPrinterState(next);
+  if (gPrinterState.queryOk && gPrinterState.hasInfo) {
+    lastPrinterInfoQueryMs = millis();
+  }
+  return gPrinterState.queryOk && gPrinterState.hasInfo;
+}
+
+static bool fetchPrinterMotionState() {
+  String url = printerMotionQueryUrl();
+  String resp;
+  int httpCode = 0;
+  if (!httpGetPrinterUrl(url, resp, httpCode)) {
+    markPrinterQueryError(url, httpCode, "HTTP motion GET failed", false);
+    return false;
+  }
+  return updatePrinterMotionStateFromJson(resp, httpCode, url);
+}
+
+static bool fetchPrinterInfoState(const char* reason) {
+  String url = printerFilamentInfoQueryUrl();
+  debugPrintf("[DEBUG] FILAMENT INFO QUERY reason=%s\n", reason ? reason : "unknown");
+  String resp;
+  int httpCode = 0;
+  if (!httpGetPrinterUrl(url, resp, httpCode)) {
+    markPrinterQueryError(url, httpCode, "HTTP filament GET failed", true);
+    return false;
+  }
+  return updatePrinterInfoStateFromJson(resp, httpCode, url);
+}
+
+static bool fetchPrinterChannelState() {
+  return fetchPrinterInfoState("compat");
+}
+
+static void scheduleNextMotionQuery(uint32_t now) {
+  nextMotionQueryMs = now + PRINTER_MOTION_QUERY_MS + printerQueryJitterMs();
+}
+
+static void scheduleNextInfoSync(uint32_t now) {
+  nextInfoSyncMs = now + PRINTER_INFO_SYNC_MS + printerQueryJitterMs();
+}
+
+static void scheduleInitialPrinterQueries(uint32_t now) {
+  uint32_t phase = printerQueryPhaseOffsetMs();
+  nextMotionQueryMs = now + phase + printerQueryJitterMs();
+  nextInfoSyncMs = now + phase + 500 + printerQueryJitterMs();
+}
+
+static bool ensureFreshPrinterInfo(const char* reason, uint32_t maxAgeMs) {
+  if (WiFi.status() != WL_CONNECTED || portalMode) return false;
+  if (lastPrinterInfoQueryMs != 0 && (millis() - lastPrinterInfoQueryMs) <= maxAgeMs) {
+    return gPrinterState.queryOk && gPrinterState.hasInfo;
+  }
+  bool ok = fetchPrinterInfoState(reason);
+  if (ok) scheduleNextInfoSync(millis());
+  return ok;
+}
+
+static bool currentPrinterMatchesExpected(const String& expectedWithUid, const String& expectedNoUid) {
+  if (!gPrinterState.queryOk || !gPrinterState.hasInfo) return false;
+  String current = currentPrinterComparableFingerprint();
+  return current == expectedWithUid || current == expectedNoUid;
+}
+
+static void clearPendingVerification() {
+  pendingVerifyPayload = "";
+  pendingVerifyFingerprint = "";
+  pendingVerifyExpectedWithUid = "";
+  pendingVerifyExpectedNoUid = "";
+  pendingVerifyDueMs = 0;
+  pendingVerifyRetriesLeft = 0;
 }
 
 static void handleStateApi() {
@@ -1246,59 +1356,26 @@ static void setupPortalRoutes() {
   });
 }
 
-static void startPortalAp(bool keepStationMode) {
-  portalMode = true;
-  if (keepStationMode) {
-    WiFi.mode(WIFI_AP_STA);
-  } else {
-    WiFi.mode(WIFI_AP);
+static uint16_t deviceShortId() {
+  return (uint16_t)(ESP.getEfuseMac() & 0xFFFF);
+}
+
+static const char* setupApSsid() {
+  if (apSsid[0] == '\0') {
+    snprintf(apSsid, sizeof(apSsid), "%s-%04X", AP_SSID_BASE, (unsigned)deviceShortId());
   }
-  WiFi.softAP(AP_SSID, AP_PASS);
-  setPrinterStateDisconnected("Setup portal active");
-
-  setupPortalRoutes();
-  dnsServer.stop();
-  dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-  web.begin();
-
-  IPAddress apIp = WiFi.softAPIP();
-  Serial.printf("[PORTAL] AP started: SSID=%s, IP=%s%s\n",
-                AP_SSID,
-                apIp.toString().c_str(),
-                keepStationMode ? " while Wi-Fi is still connecting" : "");
-  Serial.printf("[PORTAL] Captive portal: http://%s/\n", apIp.toString().c_str());
-  debugPrintf("[DEBUG] Setup portal active, captive DNS on %s:%u\n",
-              apIp.toString().c_str(),
-              DNS_PORT);
+  return apSsid;
 }
 
-static void startPortal() {
-  startPortalAp(false);
+static uint32_t wifiStartupStaggerMs() {
+  return (uint32_t)(deviceShortId() % WIFI_STARTUP_STAGGER_MAX_MS);
 }
 
-// ------------------------------ STA mode ------------------------------
-static bool connectSta() {
-  if (strlen(gSettings.wifiSsid) == 0) return false;
-
-  Serial.printf("[WIFI] Connecting to SSID=%s\n", gSettings.wifiSsid);
-  WiFi.mode(WIFI_STA);
-  WiFi.setAutoReconnect(true);
-  WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
-
+static bool waitForWifiConnect(uint32_t timeoutMs, bool servicePortal) {
   uint32_t t0 = millis();
   uint32_t lastDotMs = 0;
-  bool fallbackPortalStarted = false;
-  while (WiFi.status() != WL_CONNECTED && (millis() - t0) < WIFI_CONNECT_TIMEOUT_MS) {
-    const uint32_t elapsed = millis() - t0;
-
-    if (!fallbackPortalStarted && elapsed >= WIFI_PORTAL_FALLBACK_MS) {
-      Serial.println("\n[PORTAL] Wi-Fi is slow, starting setup hotspot now");
-      startPortalAp(true);
-      WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
-      fallbackPortalStarted = true;
-    }
-
-    if (fallbackPortalStarted) {
+  while (WiFi.status() != WL_CONNECTED && (millis() - t0) < timeoutMs) {
+    if (servicePortal) {
       dnsServer.processNextRequest();
       web.handleClient();
     }
@@ -1309,22 +1386,16 @@ static bool connectSta() {
     }
     delay(50);
   }
+  return WiFi.status() == WL_CONNECTED;
+}
 
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.printf("\n[WIFI] Connection failed, status=%d\n", (int)WiFi.status());
-    if (fallbackPortalStarted) {
-      WiFi.setAutoReconnect(false);
-      WiFi.disconnect(false);
-    }
-    return false;
-  }
-
-  if (fallbackPortalStarted) {
+static void beginStationServices(const char* reason) {
+  if (portalMode) {
     dnsServer.stop();
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_STA);
     portalMode = false;
-    Serial.println("\n[PORTAL] Setup hotspot stopped after Wi-Fi connected");
+    Serial.printf("\n[PORTAL] Setup hotspot stopped after Wi-Fi recovery (%s)\n", reason ? reason : "connected");
   }
 
   Serial.printf("\n[WIFI] Connected: %s\n", WiFi.localIP().toString().c_str());
@@ -1335,21 +1406,162 @@ static bool connectSta() {
               gSettings.printerPort);
 
   if (strlen(gSettings.hostname) > 0) {
-    if (MDNS.begin(gSettings.hostname)) {
-      Serial.printf("[MDNS] http://%s.local/\n", gSettings.hostname);
+    if (!mdnsRunning) {
+      if (MDNS.begin(gSettings.hostname)) {
+        mdnsRunning = true;
+        Serial.printf("[MDNS] http://%s.local/\n", gSettings.hostname);
+      } else {
+        Serial.println("[MDNS] start failed");
+      }
     } else {
-      Serial.println("[MDNS] start failed");
+      Serial.printf("[MDNS] http://%s.local/\n", gSettings.hostname);
     }
   }
 
-  // Start status endpoint in STA mode too (read-only)
   setupPortalRoutes();
   dnsServer.stop();
   web.begin();
-  portalMode = false;
   gPrinterState.wifiConnected = true;
+  wifiLostSinceMs = 0;
+  lastWifiReconnectMs = 0;
+  lastWifiRecoveryMs = 0;
+}
 
+static void startPortalAp(bool keepStationMode) {
+  const bool stationRecoveryEnabled = keepStationMode && strlen(gSettings.wifiSsid) > 0;
+  portalMode = true;
+  if (stationRecoveryEnabled) {
+    WiFi.mode(WIFI_AP_STA);
+  } else {
+    WiFi.mode(WIFI_AP);
+  }
+  WiFi.softAP(setupApSsid(), AP_PASS);
+  setPrinterStateDisconnected("Setup portal active");
+
+  setupPortalRoutes();
+  dnsServer.stop();
+  dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+  web.begin();
+
+  IPAddress apIp = WiFi.softAPIP();
+  Serial.printf("[PORTAL] AP started: SSID=%s, IP=%s%s\n",
+                setupApSsid(),
+                apIp.toString().c_str(),
+                stationRecoveryEnabled ? " while configured Wi-Fi recovery is active" : "");
+  Serial.printf("[PORTAL] Captive portal: http://%s/\n", apIp.toString().c_str());
+  debugPrintf("[DEBUG] Setup portal active, captive DNS on %s:%u\n",
+              apIp.toString().c_str(),
+              DNS_PORT);
+
+  if (stationRecoveryEnabled) {
+    Serial.printf("[WIFI] Portal recovery enabled for SSID=%s\n", gSettings.wifiSsid);
+    WiFi.setAutoReconnect(true);
+    WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
+    lastWifiRecoveryMs = millis();
+  }
+}
+
+static void startPortal() {
+  startPortalAp(strlen(gSettings.wifiSsid) > 0);
+}
+
+// ------------------------------ STA mode ------------------------------
+static bool connectSta() {
+  if (strlen(gSettings.wifiSsid) == 0) return false;
+
+  uint32_t staggerMs = wifiStartupStaggerMs();
+  if (staggerMs > 0) {
+    Serial.printf("[WIFI] Startup stagger=%lu ms\n", (unsigned long)staggerMs);
+    delay(staggerMs);
+  }
+
+  Serial.printf("[WIFI] Connecting to SSID=%s, timeout=%lu ms\n",
+                gSettings.wifiSsid,
+                (unsigned long)WIFI_CONNECT_TIMEOUT_MS);
+  WiFi.mode(WIFI_STA);
+  WiFi.setSleep(false);
+  WiFi.setAutoReconnect(true);
+  WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
+
+  if (!waitForWifiConnect(WIFI_CONNECT_TIMEOUT_MS, false)) {
+    Serial.printf("\n[WIFI] Connection failed, status=%d\n", (int)WiFi.status());
+    Serial.printf("[PORTAL] Configured Wi-Fi fallback allowed after %lu ms\n",
+                  (unsigned long)WIFI_PORTAL_FALLBACK_MS);
+    return false;
+  }
+
+  beginStationServices("initial connect");
   return true;
+}
+
+static bool recoverConfiguredWifiFromPortal() {
+  if (!portalMode || strlen(gSettings.wifiSsid) == 0) return false;
+
+  if (WiFi.status() == WL_CONNECTED) {
+    beginStationServices("portal recovery");
+    return true;
+  }
+
+  uint32_t now = millis();
+  if (lastWifiRecoveryMs != 0 && (now - lastWifiRecoveryMs) < WIFI_RECOVERY_RETRY_MS) return false;
+  lastWifiRecoveryMs = now;
+
+  Serial.printf("[WIFI] Portal recovery retry: SSID=%s, timeout=%lu ms\n",
+                gSettings.wifiSsid,
+                (unsigned long)WIFI_RECOVERY_ATTEMPT_MS);
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.setSleep(false);
+  WiFi.setAutoReconnect(true);
+  WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
+
+  if (waitForWifiConnect(WIFI_RECOVERY_ATTEMPT_MS, true)) {
+    beginStationServices("portal recovery");
+    return true;
+  }
+
+  Serial.printf("\n[WIFI] Portal recovery still waiting, status=%d\n", (int)WiFi.status());
+  return false;
+}
+
+static void maintainWifiConnection() {
+  if (strlen(gSettings.wifiSsid) == 0) return;
+
+  if (portalMode) {
+    recoverConfiguredWifiFromPortal();
+    return;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    if (wifiLostSinceMs != 0) {
+      Serial.printf("[WIFI] Reconnected: %s\n", WiFi.localIP().toString().c_str());
+      gPrinterState.wifiConnected = true;
+    }
+    wifiLostSinceMs = 0;
+    return;
+  }
+
+  uint32_t now = millis();
+  if (wifiLostSinceMs == 0) {
+    wifiLostSinceMs = now;
+    setPrinterStateDisconnected("Wi-Fi disconnected");
+    Serial.printf("[WIFI] Lost connection, status=%d\n", (int)WiFi.status());
+  }
+
+  if (lastWifiReconnectMs == 0 || (now - lastWifiReconnectMs) >= WIFI_RECOVERY_RETRY_MS) {
+    lastWifiReconnectMs = now;
+    Serial.printf("[WIFI] Reconnect retry: SSID=%s\n", gSettings.wifiSsid);
+    WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
+    WiFi.setAutoReconnect(true);
+    WiFi.begin(gSettings.wifiSsid, gSettings.wifiPass);
+  }
+
+  if ((now - wifiLostSinceMs) >= WIFI_PORTAL_FALLBACK_MS) {
+    Serial.printf("[PORTAL] Wi-Fi unavailable for %lu ms, starting setup hotspot fallback\n",
+                  (unsigned long)WIFI_PORTAL_FALLBACK_MS);
+    startPortalAp(true);
+    wifiLostSinceMs = 0;
+  }
 }
 
 // ------------------------------ NFC/OpenSpool parsing ------------------------------
@@ -1670,6 +1882,84 @@ static bool postJson(const String& url, const String& payload, int& httpCode, St
   return httpCode > 0;
 }
 
+static bool recordWebhookResult(bool transportOk, int code, const String& resp) {
+  bool hookOk = transportOk && code >= 200 && code < 300;
+  bool hookChanged = !gWebhookState.known ||
+                     gWebhookState.ok != hookOk ||
+                     gWebhookState.httpCode != code ||
+                     gWebhookState.response != resp;
+  gWebhookState.known = true;
+  gWebhookState.ok = hookOk;
+  gWebhookState.httpCode = code;
+  gWebhookState.lastSentMs = millis();
+  gWebhookState.response = resp;
+  if (hookChanged) bumpStateRevision();
+  return hookOk;
+}
+
+static bool sendFilamentSetPayload(const String& payload, const String& fingerprint, const char* reason, bool pulseOnFail) {
+  int code = 0;
+  String resp;
+  bool ok = postJson(filamentDetectUrl(), payload, code, resp);
+  bool hookOk = recordWebhookResult(ok, code, resp);
+  Serial.printf("[API] SET sent=%d code=%d reason=%s payload=%s\n",
+                ok ? 1 : 0,
+                code,
+                reason ? reason : "tag",
+                payload.c_str());
+
+  if (hookOk) {
+    lastSentFingerprint = fingerprint;
+  } else if (pulseOnFail) {
+    pulseTagLedError();
+  }
+  return hookOk;
+}
+
+static void scheduleSetVerification(const String& payload,
+                                    const String& fingerprint,
+                                    const String& expectedWithUid,
+                                    const String& expectedNoUid) {
+  pendingVerifyPayload = payload;
+  pendingVerifyFingerprint = fingerprint;
+  pendingVerifyExpectedWithUid = expectedWithUid;
+  pendingVerifyExpectedNoUid = expectedNoUid;
+  pendingVerifyRetriesLeft = WEBHOOK_VERIFY_MAX_RETRIES;
+  pendingVerifyDueMs = millis() + WEBHOOK_VERIFY_DELAY_MS;
+  debugPrintf("[DEBUG] SET verification scheduled in %lu ms\n", (unsigned long)WEBHOOK_VERIFY_DELAY_MS);
+}
+
+static void processPendingSetVerification() {
+  if (pendingVerifyDueMs == 0 || portalMode || WiFi.status() != WL_CONNECTED) return;
+  uint32_t now = millis();
+  if ((int32_t)(now - pendingVerifyDueMs) < 0) return;
+
+  if (fetchPrinterInfoState("set verify") && currentPrinterMatchesExpected(pendingVerifyExpectedWithUid, pendingVerifyExpectedNoUid)) {
+    debugPrint("[DEBUG] SET verified on printer");
+    clearPendingVerification();
+    scheduleNextInfoSync(millis());
+    return;
+  }
+
+  if (pendingVerifyRetriesLeft == 0) {
+    debugPrint("[DEBUG] SET verification failed, retries exhausted");
+    pulseTagLedError();
+    clearPendingVerification();
+    return;
+  }
+
+  pendingVerifyRetriesLeft--;
+  debugPrintf("[DEBUG] SET verification mismatch, retrying payload, retries_left=%u\n", pendingVerifyRetriesLeft);
+  if (sendFilamentSetPayload(pendingVerifyPayload, pendingVerifyFingerprint, "verify retry", false)) {
+    pendingVerifyDueMs = millis() + WEBHOOK_VERIFY_RETRY_MS;
+  } else if (pendingVerifyRetriesLeft == 0) {
+    pulseTagLedError();
+    clearPendingVerification();
+  } else {
+    pendingVerifyDueMs = millis() + WEBHOOK_VERIFY_RETRY_MS;
+  }
+}
+
 static void handleValidOpenSpoolPayload(const String& openspoolJson, const uint8_t* uid, uint8_t uidLen) {
   String payload;
   String fingerprint;
@@ -1690,13 +1980,28 @@ static void handleValidOpenSpoolPayload(const String& openspoolJson, const uint8
     debugPrintf("[DEBUG] NFC mapped payload %s\n", payload.c_str());
   }
 
+  bool printerInfoKnown = ensureFreshPrinterInfo("tag compare", PRINTER_TAG_INFO_MAX_AGE_MS);
+  String expectedWithUid;
+  String expectedNoUid;
+  bool comparableOk = buildDesiredPrinterComparableFingerprint(openspoolJson, uid, uidLen, expectedWithUid, true) &&
+                      buildDesiredPrinterComparableFingerprint(openspoolJson, uid, uidLen, expectedNoUid, false);
+
   bool sentBefore = fingerprint == lastSentFingerprint;
-  bool printerMatches = sentBefore && printerStateMatchesTag(openspoolJson, uid, uidLen);
-  if (sentBefore && printerMatches) {
-    debugPrint("[DEBUG] Payload already confirmed on printer, webhook skipped");
+  bool printerMatches = comparableOk && currentPrinterMatchesExpected(expectedWithUid, expectedNoUid);
+  if (printerMatches) {
+    lastSentFingerprint = fingerprint;
+    clearPendingVerification();
+    debugPrint("[DEBUG] Printer already matches tag, webhook skipped");
     return;
   }
-  if (sentBefore && (!gPrinterState.queryOk || !gPrinterState.hasInfo)) {
+
+  if (comparableOk && gPrinterState.queryOk && gPrinterState.hasInfo) {
+    debugPrintf("[DEBUG] Printer channel differs from tag, SET allowed. desired=%s current=%s\n",
+                expectedWithUid.c_str(),
+                currentPrinterComparableFingerprint().c_str());
+  }
+
+  if (sentBefore && !printerInfoKnown) {
     debugPrint("[DEBUG] Payload unchanged, printer state unknown, webhook skipped");
     return;
   }
@@ -1708,28 +2013,8 @@ static void handleValidOpenSpoolPayload(const String& openspoolJson, const uint8
     debugPrint("[DEBUG] Payload unchanged locally but printer differs, webhook resend forced");
   }
 
-  int code = 0;
-  String resp;
-  bool ok = postJson(filamentDetectUrl(), payload, code, resp);
-  bool hookOk = ok && code >= 200 && code < 300;
-  bool hookChanged = !gWebhookState.known ||
-                     gWebhookState.ok != hookOk ||
-                     gWebhookState.httpCode != code ||
-                     gWebhookState.response != resp;
-  gWebhookState.known = true;
-  gWebhookState.ok = hookOk;
-  gWebhookState.httpCode = code;
-  gWebhookState.lastSentMs = millis();
-  gWebhookState.response = resp;
-  if (hookChanged) bumpStateRevision();
-
-  Serial.printf("[API] SET sent=%d code=%d payload=%s\n", ok ? 1 : 0, code, payload.c_str());
-
-  if (ok && code >= 200 && code < 300) {
-    lastSentFingerprint = fingerprint;
-    lastPrinterQueryMs = 0; // refresh printer state promptly after a successful SET
-  } else {
-    pulseTagLedError();
+  if (sendFilamentSetPayload(payload, fingerprint, "tag", true) && comparableOk) {
+    scheduleSetVerification(payload, fingerprint, expectedWithUid, expectedNoUid);
   }
 }
 
@@ -1782,10 +2067,41 @@ static bool readOpenSpoolFromCurrentTag(uint8_t* uid, uint8_t& uidLen, String& o
   return true;
 }
 
+static void processPrinterPolling() {
+  if (portalMode || WiFi.status() != WL_CONNECTED) return;
+
+  uint32_t now = millis();
+  if (nextMotionQueryMs == 0 || nextInfoSyncMs == 0) {
+    scheduleInitialPrinterQueries(now);
+  }
+
+  if ((int32_t)(now - nextMotionQueryMs) >= 0) {
+    bool motionOk = fetchPrinterMotionState();
+    now = millis();
+    scheduleNextMotionQuery(now);
+
+    if (motionOk && gPrinterState.motionKnown && gPrinterState.filamentDetected) {
+      if (lastFeederInfoQueryMs == 0 || (now - lastFeederInfoQueryMs) >= PRINTER_FEEDER_INFO_REFRESH_MS) {
+        lastFeederInfoQueryMs = now;
+        if (fetchPrinterInfoState("feeder active")) {
+          scheduleNextInfoSync(millis());
+        }
+      }
+    }
+  }
+
+  now = millis();
+  if ((int32_t)(now - nextInfoSyncMs) >= 0) {
+    fetchPrinterInfoState("slow sync");
+    scheduleNextInfoSync(millis());
+  }
+}
+
 // ============================== Setup / Loop ==============================
 void setup() {
   Serial.begin(SERIAL_BAUD);
   delay(400);
+  randomSeed((uint32_t)ESP.getEfuseMac() ^ micros());
   Serial.printf("\n[%s] boot %s (%s)\n", FW_NAME, FW_VERSION, FW_ITERATION);
   debugPrint("[DEBUG] Serial monitor ready");
   debugPrintf("[DEBUG] PN532 HSU wiring RX=GPIO%d TX=GPIO%d reset=GPIO%d baud=%lu\n",
@@ -1802,7 +2118,7 @@ void setup() {
 
   loadSettings();
   gPrinterState.endpoint = printerChannelQueryUrl();
-  Serial.printf("[CONFIG] SSID=%s, pass=%u chars, host=%s%s, printer=%s:%u, channel=%u, tool_head=%u, query_offset=%lu ms\n",
+  Serial.printf("[CONFIG] SSID=%s, pass=%u chars, host=%s%s, printer=%s:%u, channel=%u, tool_head=%u, query_offset=%lu ms, setup_ap=%s\n",
                 strlen(gSettings.wifiSsid) ? gSettings.wifiSsid : "(empty)",
                 (unsigned)strlen(gSettings.wifiPass),
                 strlen(gSettings.hostname) ? gSettings.hostname : "(empty)",
@@ -1811,7 +2127,8 @@ void setup() {
                 (unsigned)gSettings.printerPort,
                 (unsigned)gSettings.channel,
                 (unsigned)(gSettings.channel + 1),
-                (unsigned long)printerQueryPhaseOffsetMs());
+                (unsigned long)printerQueryPhaseOffsetMs(),
+                setupApSsid());
 
   bool staOk = false;
   if (strlen(gSettings.wifiSsid) > 0) {
@@ -1847,7 +2164,7 @@ void setup() {
 
   lastPollMs = millis();
   lastTagSeenMs = 0;
-  lastPrinterQueryMs = millis() - (PRINTER_QUERY_MS - printerQueryPhaseOffsetMs());
+  scheduleInitialPrinterQueries(millis());
 }
 
 void loop() {
@@ -1862,6 +2179,8 @@ void loop() {
     dnsServer.processNextRequest();
   }
   web.handleClient();
+  maintainWifiConnection();
+  now = millis();
 
   if (gTagState.active && gTagState.lastSeenMs != 0 && (now - gTagState.lastSeenMs) > TAG_ACTIVE_WINDOW_MS) {
     gTagState.active = false;
@@ -1884,9 +2203,6 @@ void loop() {
     delay(20);
   }
 
-  uint32_t afterNfc = millis();
-  if (!portalMode && (afterNfc - lastPrinterQueryMs) >= PRINTER_QUERY_MS) {
-    lastPrinterQueryMs = afterNfc;
-    fetchPrinterChannelState();
-  }
+  processPendingSetVerification();
+  processPrinterPolling();
 }

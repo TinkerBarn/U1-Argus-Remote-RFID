@@ -32,6 +32,8 @@
 - Send mapped filament information to a **Snapmaker U1** over the external filament-detection API
 - Offer a built-in **setup hotspot** with captive portal for first configuration
 - Persist Wi-Fi, printer, language, and dashboard-reader settings in ESP32 `Preferences`
+- Recover automatically from temporary Wi-Fi outages and return from setup hotspot to station mode
+- Reduce printer-side polling load in multi-reader setups by using event-driven full filament refreshes
 - Serve a local **dashboard** that shows:
   - current printer channel information
   - last valid tag information
@@ -97,7 +99,7 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 | `GPIO3` | `SCL` | HSU TX line to PN532 board |
 | `GPIO4` | `SDA` | HSU RX line from PN532 board |
 
-The firmware release `V1.1` uses:
+The firmware release `V1.2` uses:
 
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
@@ -143,7 +145,7 @@ Then start the flash process again in the web installer.
 
 Public release source:
 
-- [source/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
+- [source/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
 
 Development iterations are kept in the local `dev/` folder and are intentionally not published.
 
@@ -184,9 +186,11 @@ Local development iterations such as `V1.0.1`, `V1.0.2`, and later candidates li
 
 ## First Setup On The Device
 
-On first boot, the reader opens this hotspot:
+On first boot, the reader opens a device-specific setup hotspot:
 
-- **`U1-Argus-Setup`**
+- **`U1-Argus-Setup-XXXX`**
+
+The suffix is generated from the ESP32-C3 device ID. This avoids conflicts when several readers are powered at the same time.
 
 Normally the captive portal starts automatically.
 
@@ -202,7 +206,7 @@ Then configure the reader like this:
 4. Keep port `7125` unless you intentionally use a different port
 5. Enter an mDNS name
    This must be unique if you use multiple readers
-6. Choose the channel / tool head the reader belongs to
+6. Choose the Tool Head the reader belongs to
 7. Optionally add already active readers as IP or full URL
    These later appear in the dashboard as quick-jump buttons
 8. Save and reboot
@@ -243,14 +247,40 @@ Replace `example` with the hostname you entered in setup.
 
 ---
 
+## Release V1.2
+
+`V1.2` is the current public release.
+
+Highlights:
+
+- More robust startup when several readers are powered at the same time
+- Device-specific setup hotspot names such as `U1-Argus-Setup-A3F2`
+- Configured Wi-Fi gets up to 30 seconds before setup hotspot fallback starts
+- While setup hotspot is active, the reader keeps retrying the configured Wi-Fi and automatically returns to station mode when it becomes available
+- Lower printer-side polling load in multi-reader setups
+- Idle state polls only the reader's own `filament_motion_sensor eX_filament=filament_detected`
+- Full `filament_detect=info` refreshes are now event-driven: boot sync, feeder activity, valid tag reads, SET verification, and slow sync
+- Successful printer updates are verified and retried if the printer still reports different channel data
+
+Release source:
+
+- [source/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
+
+Firmware folder:
+
+- [firmware/V1.2](./firmware/V1.2/)
+
+---
+
 ## Release V1.1
 
-`V1.1` is the current public release.
+`V1.1` is the previous public release.
 
 Highlights:
 
 - Better multi-reader dashboard navigation for setups with up to four tool heads
 - Saved additional reader IPs/URLs and Tool Head assignments are loaded correctly
+- Reduced printer status load when three or four readers are active by querying only the matching motion sensor and staggering status polls
 - Clearer Tool Head wording while still showing matching internal Channel numbers
 - Improved resend logic: the same tag can be resent if the printer channel does not yet match
 - Faster NFC polling while keeping the proven stable PN532 read-window method
