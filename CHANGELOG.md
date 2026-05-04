@@ -9,7 +9,7 @@ All public release changes are tracked here.
 - Adds a setup-page prefill button for additional reader URLs based on this reader's mDNS name and selected Tool Head
 - Preserves existing additional-reader entries during prefill and only fills empty slots
 - Adds separate Web Installer paths for Update Install and Clean Install
-- Update Install flashes only the application image at offset `0x10000` and preserves saved NVS settings
+- Update Install uses the Arduino-exported bootloader, partition table, OTA boot metadata, and application image without touching the NVS settings area
 - Clean Install flashes the complete merged image from offset `0` and resets saved settings
 - Keeps setup values in ESP32 `Preferences` and adds a config-version marker for future migrations
 - Exposes printer address and address type in the local state API for diagnostics

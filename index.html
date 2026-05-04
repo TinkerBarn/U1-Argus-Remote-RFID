@@ -149,12 +149,12 @@
               <h3 class="lang lang-en active">Update Install - keep settings</h3>
               <h3 class="lang lang-de">Update Install - Einstellungen behalten</h3>
               <p class="lang lang-en active">
-                Use this for normal U1 Argus updates. It flashes only the application at offset <code>0x10000</code> and keeps Wi-Fi, printer, language, Tool Head, and reader settings in NVS.
+                Use this for normal U1 Argus updates. It does not write the NVS settings area and keeps Wi-Fi, printer, language, Tool Head, and reader settings.
               </p>
               <p class="lang lang-de">
-                Fuer normale U1-Argus-Updates verwenden. Es wird nur die Anwendung ab Offset <code>0x10000</code> geflasht. WLAN, Drucker, Sprache, Tool Head und Reader-Einstellungen in NVS bleiben erhalten.
+                Fuer normale U1-Argus-Updates verwenden. Der NVS-Einstellungsbereich wird nicht geschrieben. WLAN, Drucker, Sprache, Tool Head und Reader-Einstellungen bleiben erhalten.
               </p>
-              <esp-web-install-button manifest="./manifest-v1.3-update.json?v=1"></esp-web-install-button>
+              <esp-web-install-button manifest="./manifest-v1.3-update.json?v=2"></esp-web-install-button>
             </div>
             <div class="install-choice clean">
               <h3 class="lang lang-en active">Clean Install - reset settings</h3>
@@ -165,30 +165,30 @@
               <p class="lang lang-de">
                 Fuer den ersten Flash oder ein Board mit anderer Firmware verwenden. Es wird das komplette merged Image ab Offset <code>0</code> geschrieben und gespeicherte Einstellungen werden zurueckgesetzt.
               </p>
-              <esp-web-install-button manifest="./manifest-v1.3-clean.json?v=1"></esp-web-install-button>
+              <esp-web-install-button manifest="./manifest-v1.3-clean.json?v=2"></esp-web-install-button>
             </div>
           </div>
           <div class="lang lang-en active">
             <ul>
-              <li>Update Install uses <code>firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.bin</code></li>
+              <li>Update Install writes boot metadata and the app image without touching the NVS settings area</li>
               <li>Clean Install uses <code>firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin</code></li>
               <li>Best used with Chrome or Edge and a data-capable USB cable</li>
             </ul>
           </div>
           <div class="lang lang-de">
             <ul>
-              <li>Update Install verwendet <code>firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.bin</code></li>
+              <li>Update Install schreibt Boot-Metadaten und die App, ohne den NVS-Einstellungsbereich anzufassen</li>
               <li>Clean Install verwendet <code>firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin</code></li>
               <li>Am besten mit Chrome oder Edge und einem datenfaehigen USB-Kabel verwenden</li>
             </ul>
           </div>
           <div class="hero-note lang lang-en active">
             <strong>Which one should I choose?</strong>
-            If U1 Argus is already installed, choose Update Install. If the board has other firmware, choose Clean Install and allow erase/clear flash when prompted.
+            If U1 Argus is already installed, choose Update Install and do not enable Erase device. If the board has other firmware, choose Clean Install and allow erase/clear flash when prompted.
           </div>
           <div class="hero-note lang lang-de">
             <strong>Welche Variante soll ich nehmen?</strong>
-            Wenn U1 Argus bereits installiert ist, Update Install waehlen. Wenn auf dem Board andere Firmware ist, Clean Install waehlen und Erase/Clear Flash bestaetigen, wenn der Installer danach fragt.
+            Wenn U1 Argus bereits installiert ist, Update Install waehlen und Erase device nicht aktivieren. Wenn auf dem Board andere Firmware ist, Clean Install waehlen und Erase/Clear Flash bestaetigen, wenn der Installer danach fragt.
           </div>
         </div>
       </article>

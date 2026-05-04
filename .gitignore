@@ -3,7 +3,20 @@
 *.ino.bin
 !firmware/**/*.ino.bin
 *.ino.bootloader.bin
+!firmware/**/*.ino.bootloader.bin
 *.ino.map
+*.ino.elf
+
+# Release helper binaries exported by Arduino IDE
+!firmware/**/boot_app0.bin
+!firmware/**/*.ino.partitions.bin
+
+# Arduino IDE metadata and temporary export files
+build.options.json
+flash_args
+partitions.csv
+sdkconfig
+*.tmp
 
 # Build output
 build/
