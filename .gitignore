@@ -1,6 +1,7 @@
 # Arduino IDE
 *.ino.eep
 *.ino.bin
+!firmware/**/*.ino.bin
 *.ino.bootloader.bin
 *.ino.map
 

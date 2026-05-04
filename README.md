@@ -122,9 +122,21 @@ Recommended steps:
 
 1. Connect the **ESP32-C3 Super Mini** by USB
 2. Open the web installer
-3. Click **Install**
-4. Select the correct serial device
-5. Wait until flashing is finished
+3. Choose the matching install type
+4. Click **Install**
+5. Select the correct serial device
+6. Wait until flashing is finished
+
+Install types:
+
+- **Update Install**
+  Use this when U1 Argus Remote RFID is already installed. It flashes only the application image and keeps saved `Preferences`/NVS settings such as Wi-Fi, printer address, language, Tool Head, and additional readers.
+- **Clean Install**
+  Use this for a first flash or for a board that currently has unrelated firmware. It flashes the complete merged image and resets saved settings.
+
+For Clean Install, allow the installer erase/clear flash option when prompted.
+
+For Update Install, do **not** erase/clear flash.
 
 If the board is not detected immediately:
 
@@ -259,6 +271,9 @@ Highlights:
 - `.local` printer names are resolved through mDNS before printer API URLs are used
 - Setup page includes a prefill button for additional reader URLs based on this reader's mDNS name and selected Tool Head
 - Prefill keeps already entered reader URLs untouched and only fills empty slots
+- Web installer now offers separate Update Install and Clean Install paths
+- Update Install uses the application image only and preserves saved settings in NVS
+- Clean Install uses the merged image and resets saved settings for a fresh start
 - Configuration keeps using persistent ESP32 `Preferences` and now includes a config-version marker for future migrations
 - Dashboard/API state exposes the configured printer address type for easier diagnostics
 
