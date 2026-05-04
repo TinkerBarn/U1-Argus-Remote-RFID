@@ -1,27 +1,15 @@
 {
-  "name": "U1 Argus Remote RFID Update",
+  "name": "U1 Argus Remote RFID",
   "version": "V1.3",
   "home_assistant_domain": "",
-  "new_install_prompt_erase": false,
+  "new_install_prompt_erase": true,
   "builds": [
     {
       "chipFamily": "ESP32-C3",
       "parts": [
         {
-          "path": "firmware/V1.3/update/U1_Argus_Remote_RFID_V1.3.ino.bootloader.bin",
+          "path": "firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin",
           "offset": 0
-        },
-        {
-          "path": "firmware/V1.3/update/U1_Argus_Remote_RFID_V1.3.ino.partitions.bin",
-          "offset": 32768
-        },
-        {
-          "path": "firmware/V1.3/update/boot_app0.bin",
-          "offset": 57344
-        },
-        {
-          "path": "firmware/V1.3/update/U1_Argus_Remote_RFID_V1.3.ino.bin",
-          "offset": 65536
         }
       ]
     }

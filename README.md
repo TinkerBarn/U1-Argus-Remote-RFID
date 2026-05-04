@@ -122,21 +122,9 @@ Recommended steps:
 
 1. Connect the **ESP32-C3 Super Mini** by USB
 2. Open the web installer
-3. Choose the matching install type
-4. Click **Install**
-5. Select the correct serial device
-6. Wait until flashing is finished
-
-Install types:
-
-- **Update Install**
-  Use this when U1 Argus Remote RFID is already installed. It refreshes boot metadata and the application image without writing the NVS settings area. Saved `Preferences` such as Wi-Fi, printer address, language, Tool Head, and additional readers stay available.
-- **Clean Install**
-  Use this for a first flash or for a board that currently has unrelated firmware. It flashes the complete merged image and resets saved settings.
-
-For Clean Install, allow the installer erase/clear flash option when prompted.
-
-For Update Install, do **not** enable **Erase device** or erase/clear flash.
+3. Click **Install**
+4. Select the correct serial device
+5. Wait until flashing is finished
 
 If the board is not detected immediately:
 
@@ -185,8 +173,6 @@ For the first flash onto a board that previously had other firmware, it is recom
 - **Erase All Flash Before Sketch Upload**
 
 This helps avoid stale settings in `Preferences`/NVS from older firmware.
-
-For normal updates from an existing U1 Argus Remote RFID installation, do **not** erase flash. Keeping flash/NVS preserves the saved Wi-Fi, printer address, language, Tool Head, and additional-reader settings.
 
 ### Repository Layout
 
@@ -271,9 +257,6 @@ Highlights:
 - `.local` printer names are resolved through mDNS before printer API URLs are used
 - Setup page includes a prefill button for additional reader URLs based on this reader's mDNS name and selected Tool Head
 - Prefill keeps already entered reader URLs untouched and only fills empty slots
-- Web installer now offers separate Update Install and Clean Install paths
-- Update Install uses the Arduino-exported bootloader, partition table, OTA boot metadata, and application image without touching the NVS settings area
-- Clean Install uses the merged image and resets saved settings for a fresh start
 - Configuration keeps using persistent ESP32 `Preferences` and now includes a config-version marker for future migrations
 - Dashboard/API state exposes the configured printer address type for easier diagnostics
 
