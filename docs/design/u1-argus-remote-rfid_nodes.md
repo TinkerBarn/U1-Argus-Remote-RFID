@@ -107,6 +107,109 @@ For each configured remote sensor endpoint:
 
 If these fields may also support hostnames or mDNS names, document and implement the same distinction between IP-based and hostname-based connection logic where relevant.
 
+## Auto-Prefill for Additional RFID Readers
+
+The setup page should be able to prefill the three additional RFID reader entries when the current node has an mDNS name and a selected toolhead.
+
+The goal is to reduce manual setup work for a typical four-toolhead Snapmaker U1 configuration.
+
+### Input Values
+
+The auto-prefill logic should use:
+
+- The configured mDNS name of the current RFID reader node.
+- The selected toolhead number for the current RFID reader node.
+- The expected toolhead range `1` to `4`.
+
+The current node itself must not be added to the list of additional RFID readers. Only the other three toolheads should be suggested.
+
+### Prefill Behavior
+
+When the current node mDNS name contains a numeric suffix that represents the selected toolhead, use the same base name and generate the missing reader URLs for the other toolheads.
+
+Example:
+
+Current node:
+
+```text
+mDNS name: rfid1
+Selected toolhead: 1
+```
+
+Suggested additional readers:
+
+```text
+RFID Sensor 2: URL http://rfid2.local, Toolhead 2
+RFID Sensor 3: URL http://rfid3.local, Toolhead 3
+RFID Sensor 4: URL http://rfid4.local, Toolhead 4
+```
+
+Another example:
+
+Current node:
+
+```text
+mDNS name: rfid3
+Selected toolhead: 3
+```
+
+Suggested additional readers:
+
+```text
+RFID Sensor 2: URL http://rfid1.local, Toolhead 1
+RFID Sensor 3: URL http://rfid2.local, Toolhead 2
+RFID Sensor 4: URL http://rfid4.local, Toolhead 4
+```
+
+In this example, the UI field labels `RFID Sensor 2`, `RFID Sensor 3`, and `RFID Sensor 4` represent the three additional reader entries in the current node setup. They do not necessarily have to match the toolhead number.
+
+### mDNS Names Without Existing Number
+
+If the configured mDNS name does not contain a number, generate suggested names by appending the corresponding toolhead number to the configured base name.
+
+Example:
+
+Current node:
+
+```text
+mDNS name: rfidsensor
+Selected toolhead: 2
+```
+
+Suggested additional readers:
+
+```text
+RFID Sensor 2: URL http://rfidsensor1.local, Toolhead 1
+RFID Sensor 3: URL http://rfidsensor3.local, Toolhead 3
+RFID Sensor 4: URL http://rfidsensor4.local, Toolhead 4
+```
+
+The selected toolhead `2` is skipped because it belongs to the current node.
+
+### Name Handling Rules
+
+Suggested logic:
+
+- Normalize the configured current-node mDNS name by removing a trailing `.local` suffix if the user entered it.
+- Detect a numeric suffix at the end of the host name.
+- If a numeric suffix exists and matches the selected toolhead, remove that suffix to get the base name.
+- Generate the missing reader hostnames by appending the target toolhead number to the base name.
+- If no numeric suffix exists, use the full configured mDNS host name as the base name and append the target toolhead number.
+- Generate URLs in the format `http://<generated-name>.local`.
+- Do not overwrite existing additional reader fields automatically if the user has already entered values manually, unless the UI provides an explicit "prefill" or "regenerate suggestions" action.
+
+### Suggested UI Behavior
+
+The setup UI should provide either automatic suggestions or a dedicated button, for example:
+
+```text
+Prefill RFID readers from mDNS name
+```
+
+The prefill action should only fill empty fields by default.
+
+If existing values are present, the UI should avoid silently replacing them. A confirmation prompt or a clearly named "regenerate" action is preferred.
+
 ## Compatibility Notes
 
 When changing the persistent configuration structure, avoid breaking existing installations unnecessarily.
@@ -126,7 +229,9 @@ The implementation should not erase existing Wi-Fi credentials or setup values u
 7. Use IP-based connection logic for IPv4 values.
 8. Use hostname or mDNS resolution logic for hostname values such as `u1.local`.
 9. Update the setup UI text to explain that both IP and mDNS are supported.
-10. Test reboot behavior and firmware update behavior.
+10. Add auto-prefill logic for the three additional RFID readers based on current node mDNS name and selected toolhead.
+11. Ensure the prefill logic skips the current node toolhead and suggests the remaining three toolheads.
+12. Test reboot behavior and firmware update behavior.
 
 ## Acceptance Criteria
 
@@ -139,4 +244,8 @@ The task is complete when:
 - A printer configured by IP address connects using IP-based logic.
 - A printer configured by mDNS name, for example `u1.local`, connects using hostname/mDNS logic.
 - The setup UI clearly tells the user that both IP and mDNS values are accepted.
+- When the current node has an mDNS name with a matching numeric suffix, the UI can prefill the three additional RFID reader URLs for the remaining toolheads.
+- When the current node mDNS name has no number, the UI can generate reader suggestions by appending the toolhead numbers to the configured base name.
+- The current node's own toolhead is not added as an additional reader.
+- Existing manually entered additional reader values are not silently overwritten.
 - Existing installations are not unnecessarily reset or overwritten.
