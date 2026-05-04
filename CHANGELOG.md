@@ -2,6 +2,23 @@
 
 All public release changes are tracked here.
 
+## V1.3
+
+- Allows the Snapmaker U1 printer address to be configured as IPv4 address or hostname/mDNS name, for example `192.168.1.120` or `u1.local`
+- Resolves `.local` printer names through mDNS before building printer API URLs
+- Adds a setup-page prefill button for additional reader URLs based on this reader's mDNS name and selected Tool Head
+- Preserves existing additional-reader entries during prefill and only fills empty slots
+- Keeps setup values in ESP32 `Preferences` and adds a config-version marker for future migrations
+- Exposes printer address and address type in the local state API for diagnostics
+
+Release source:
+
+- [source/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
+
+Firmware folder:
+
+- [firmware/V1.3](./firmware/V1.3/)
+
 ## V1.2
 
 - Improves multi-reader startup reliability when several ESP32-C3 readers are powered at the same time

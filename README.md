@@ -99,7 +99,7 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 | `GPIO3` | `SCL` | HSU TX line to PN532 board |
 | `GPIO4` | `SDA` | HSU RX line from PN532 board |
 
-The firmware release `V1.2` uses:
+The firmware release `V1.3` uses:
 
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
@@ -145,7 +145,7 @@ Then start the flash process again in the web installer.
 
 Public release source:
 
-- [source/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
+- [source/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
 
 Development iterations are kept in the local `dev/` folder and are intentionally not published.
 
@@ -173,6 +173,8 @@ For the first flash onto a board that previously had other firmware, it is recom
 - **Erase All Flash Before Sketch Upload**
 
 This helps avoid stale settings in `Preferences`/NVS from older firmware.
+
+For normal updates from an existing U1 Argus Remote RFID installation, do **not** erase flash. Keeping flash/NVS preserves the saved Wi-Fi, printer address, language, Tool Head, and additional-reader settings.
 
 ### Repository Layout
 
@@ -202,7 +204,7 @@ Then configure the reader like this:
 
 1. Enter the SSID of your home Wi-Fi
 2. Enter the Wi-Fi password
-3. Enter the IP address of your Snapmaker U1
+3. Enter the IP address or mDNS hostname of your Snapmaker U1
 4. Keep port `7125` unless you intentionally use a different port
 5. Enter an mDNS name
    This must be unique if you use multiple readers
@@ -247,9 +249,32 @@ Replace `example` with the hostname you entered in setup.
 
 ---
 
+## Release V1.3
+
+`V1.3` is the current public release.
+
+Highlights:
+
+- Snapmaker U1 printer address can now be an IPv4 address or hostname/mDNS name, for example `192.168.1.120` or `u1.local`
+- `.local` printer names are resolved through mDNS before printer API URLs are used
+- Setup page includes a prefill button for additional reader URLs based on this reader's mDNS name and selected Tool Head
+- Prefill keeps already entered reader URLs untouched and only fills empty slots
+- Configuration keeps using persistent ESP32 `Preferences` and now includes a config-version marker for future migrations
+- Dashboard/API state exposes the configured printer address type for easier diagnostics
+
+Release source:
+
+- [source/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
+
+Firmware folder:
+
+- [firmware/V1.3](./firmware/V1.3/)
+
+---
+
 ## Release V1.2
 
-`V1.2` is the current public release.
+`V1.2` is the previous public release.
 
 Highlights:
 

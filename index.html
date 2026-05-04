@@ -105,10 +105,10 @@
             <div>
               <h1>U1 Argus Remote RFID</h1>
               <div class="subtitle lang lang-en active">
-                Fast browser-based installer for the V1.2 release of the ESP32-C3 Super Mini + PN532 OpenSpool remote RFID reader for Snapmaker U1.
+                Fast browser-based installer for the V1.3 release of the ESP32-C3 Super Mini + PN532 OpenSpool remote RFID reader for Snapmaker U1.
               </div>
               <div class="subtitle lang lang-de">
-                Schneller browserbasierter Installer fuer das V1.2-Release des ESP32-C3 Super Mini + PN532 OpenSpool Remote RFID Readers fuer den Snapmaker U1.
+                Schneller browserbasierter Installer fuer das V1.3-Release des ESP32-C3 Super Mini + PN532 OpenSpool Remote RFID Readers fuer den Snapmaker U1.
               </div>
             </div>
           </div>
@@ -119,11 +119,11 @@
         </div>
         <div class="hero-note lang lang-en active">
           <strong>One firmware, one job, one clean setup.</strong>
-          Connect your ESP32-C3 by USB, click Install, and flash the current public V1.2 release directly from the browser.
+          Connect your ESP32-C3 by USB, click Install, and flash the current public V1.3 release directly from the browser.
         </div>
         <div class="hero-note lang lang-de">
           <strong>Eine Firmware, eine Aufgabe, ein sauberer Setup-Weg.</strong>
-          ESP32-C3 per USB anschliessen, auf Install klicken und das aktuelle oeffentliche V1.2-Release direkt im Browser flashen.
+          ESP32-C3 per USB anschliessen, auf Install klicken und das aktuelle oeffentliche V1.3-Release direkt im Browser flashen.
         </div>
       </div>
     </section>
@@ -132,23 +132,31 @@
       <article class="card">
         <div class="badge lang lang-en active">Current Public Release</div>
         <div class="badge lang lang-de">Aktuelles oeffentliches Release</div>
-        <h2>V1.2</h2>
+        <h2>V1.3</h2>
         <div class="install-box">
           <div class="board">ESP32-C3 Super Mini</div>
-          <esp-web-install-button manifest="./manifest-v1.2.json?v=1"></esp-web-install-button>
+          <esp-web-install-button manifest="./manifest-v1.3.json?v=1"></esp-web-install-button>
           <div class="lang lang-en active">
             <ul>
-              <li>Uses the prepared single-version installer manifest for <code>V1.2</code></li>
-              <li>Flashes the firmware image from <code>firmware/V1.2/U1_Argus_Remote_RFID_V1.2.ino.merged.bin</code></li>
+              <li>Uses the prepared single-version installer manifest for <code>V1.3</code></li>
+              <li>Flashes the firmware image from <code>firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin</code></li>
               <li>Best used with Chrome or Edge and a data-capable USB cable</li>
             </ul>
           </div>
           <div class="lang lang-de">
             <ul>
-              <li>Verwendet das vorbereitete Single-Version-Manifest fuer <code>V1.2</code></li>
-              <li>Flasht das Firmware-Image aus <code>firmware/V1.2/U1_Argus_Remote_RFID_V1.2.ino.merged.bin</code></li>
+              <li>Verwendet das vorbereitete Single-Version-Manifest fuer <code>V1.3</code></li>
+              <li>Flasht das Firmware-Image aus <code>firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin</code></li>
               <li>Am besten mit Chrome oder Edge und einem datenfaehigen USB-Kabel verwenden</li>
             </ul>
+          </div>
+          <div class="hero-note lang lang-en active">
+            <strong>Clean install or update?</strong>
+            For a first flash or a board with unrelated firmware, use the installer erase/clear flash option when prompted. For normal U1 Argus updates, do not erase flash so Wi-Fi, printer, language, Tool Head, and reader settings stay saved.
+          </div>
+          <div class="hero-note lang lang-de">
+            <strong>Clean Install oder Update?</strong>
+            Beim ersten Flashen oder bei einem Board mit anderer Firmware die Erase/Clear-Flash-Option verwenden, wenn der Installer danach fragt. Bei normalen U1-Argus-Updates den Flash nicht loeschen, damit WLAN, Drucker, Sprache, Tool Head und Reader-Einstellungen erhalten bleiben.
           </div>
         </div>
       </article>
@@ -175,11 +183,11 @@
 
         <div class="hero-note lang lang-en active">
           <strong>After flashing</strong>
-          Connect to the hotspot <code>U1-Argus-Setup</code>. The captive portal should open automatically. If not, open <code>http://192.168.4.1</code>.
+          Connect to the hotspot <code>U1-Argus-Setup-XXXX</code>. The captive portal should open automatically. If not, open <code>http://192.168.4.1</code>.
         </div>
         <div class="hero-note lang lang-de">
           <strong>Nach dem Flashen</strong>
-          Mit dem Hotspot <code>U1-Argus-Setup</code> verbinden. Das Captive Portal sollte automatisch starten. Falls nicht, <code>http://192.168.4.1</code> oeffnen.
+          Mit dem Hotspot <code>U1-Argus-Setup-XXXX</code> verbinden. Das Captive Portal sollte automatisch starten. Falls nicht, <code>http://192.168.4.1</code> oeffnen.
         </div>
       </article>
     </section>
