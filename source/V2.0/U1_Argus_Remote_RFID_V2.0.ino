@@ -2549,7 +2549,7 @@ static bool buildFilamentDetectPayload(const OpenSpoolFields& fields,
   if (fields.alpha >= 0) info["ALPHA"] = fields.alpha;
   if (fields.minTemp >= 0) info["HOTEND_MIN_TEMP"] = fields.minTemp;
   if (fields.maxTemp >= 0) info["HOTEND_MAX_TEMP"] = fields.maxTemp;
-  if (fields.officialKnown) info["OFFICIAL"] = fields.official;
+  // OFFICIAL is derived by the printer firmware and is not accepted by filament_detect/set.
   if (fields.bedTemp >= 0) info["BED_TEMP"] = fields.bedTemp;
 
   JsonArray uidArr = info["CARD_UID"].to<JsonArray>();
