@@ -5,11 +5,11 @@
 </p>
 
 <p align="center">
-  Remote OpenSpool RFID reader for Snapmaker U1 with ESP32-C3 Super Mini and PN532.
+  Remote OpenSpool and QIDI RFID reader for Snapmaker U1 with ESP32-C3 Super Mini and PN532.
 </p>
 
 <p align="center">
-  Reads OpenSpool NFC tags, maps them to the Snapmaker U1 external filament workflow, and shows a beautiful local dashboard with live channel and tag status.
+  Reads OpenSpool NFC and QIDI MIFARE Classic tags, maps them to the Snapmaker U1 external filament workflow, and shows a beautiful local dashboard with live channel and tag status.
 </p>
 
 <p align="center">
@@ -29,9 +29,11 @@
 ## What This Reader Can Do
 
 - Read **OpenSpool Standard** RFID/NFC tags through a **PN532** in **HSU/UART** mode
+- Read **QIDI** MIFARE Classic 1K tags with material, vendor, and color mapping
+- Upload a reduced QIDI `officiall_filas_list.cfg` through setup and store it persistently on the ESP32-C3
 - Send mapped filament information to a **Snapmaker U1** over the external filament-detection API
 - Offer a built-in **setup hotspot** with captive portal for first configuration
-- Persist Wi-Fi, printer, language, and dashboard-reader settings in ESP32 `Preferences`
+- Persist Wi-Fi, printer, dashboard-reader, and QIDI mapping settings in ESP32 `Preferences`
 - Recover automatically from temporary Wi-Fi outages and return from setup hotspot to station mode
 - Reduce printer-side polling load in multi-reader setups by using event-driven full filament refreshes
 - Serve a local **dashboard** that shows:
@@ -39,7 +41,8 @@
   - last valid tag information
   - last webhook result
   - quick buttons to jump between up to **4 readers**
-- Support **English and German** in setup, captive portal, dashboard, and web installer
+- Keep the device UI compact and English-only for ESP32-C3 flash headroom
+- Support **English and German** in the web installer
 
 ---
 
@@ -99,7 +102,7 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 | `GPIO3` | `SCL` | HSU TX line to PN532 board |
 | `GPIO4` | `SDA` | HSU RX line from PN532 board |
 
-The firmware release `V1.3` uses:
+The firmware release `V2.0` uses:
 
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
@@ -126,6 +129,11 @@ Recommended steps:
 4. Select the correct serial device
 5. Wait until flashing is finished
 
+Erase recommendation:
+
+- For a clean install or when replacing other firmware, keep **Erase device** enabled
+- For updates from an existing U1 Argus Remote RFID installation, disable erase if you want to keep Wi-Fi, printer, reader, and uploaded QIDI settings
+
 If the board is not detected immediately:
 
 - reconnect the USB cable
@@ -145,7 +153,7 @@ Then start the flash process again in the web installer.
 
 Public release source:
 
-- [source/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
+- [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
 
 Development iterations are kept in the local `dev/` folder and are intentionally not published.
 
@@ -247,9 +255,35 @@ Replace `example` with the hostname you entered in setup.
 
 ---
 
+## Release V2.0
+
+`V2.0` is the current public release.
+
+Highlights:
+
+- Adds QIDI MIFARE Classic 1K tag support with vendor, material, and color mapping
+- Includes compact built-in QIDI Plus4 defaults and optional setup upload for `officiall_filas_list.cfg`
+- Stores uploaded QIDI material/vendor mappings persistently in ESP32 `Preferences`
+- Speeds up QIDI tag reads through raw PN532 HSU authentication and block reads
+- Speeds up large OpenSpool tags with bigger NTAG `FAST_READ` chunks
+- Supports larger NTAG/OpenSpool payloads, including tags with opacity, weight, and multiple extra color fields
+- Parses OpenSpool JSON only once before building the printer payload and dashboard state
+- Keeps standard serial logs for Wi-Fi, mDNS, PN532, NFC read timing, and API activity while keeping verbose debug disabled by default
+- Device UI is English-only to preserve ESP32-C3 flash headroom; the web installer remains English/German
+
+Release source:
+
+- [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
+
+Firmware folder:
+
+- [firmware/V2.0](./firmware/V2.0/)
+
+---
+
 ## Release V1.3
 
-`V1.3` is the current public release.
+`V1.3` is the previous public release.
 
 Highlights:
 

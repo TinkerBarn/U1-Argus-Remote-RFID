@@ -2,6 +2,27 @@
 
 All public release changes are tracked here.
 
+## V2.0
+
+- Adds QIDI MIFARE Classic 1K tag support with vendor, material, and color mapping
+- Includes compact built-in QIDI Plus4 defaults
+- Adds optional setup upload for reduced `officiall_filas_list.cfg` data
+- Stores uploaded QIDI material/vendor mappings persistently in ESP32 `Preferences`
+- Speeds up QIDI reads through raw PN532 HSU authentication and block reads
+- Speeds up large OpenSpool reads with larger NTAG `FAST_READ` chunks
+- Supports larger NTAG/OpenSpool payloads such as tags with opacity, weight, and multiple extra colors
+- Parses OpenSpool JSON once and reuses the mapped fields for printer payloads, comparisons, and dashboard state
+- Keeps standard serial logs active while verbose debug remains disabled by default
+- Keeps the device UI English-only to preserve ESP32-C3 flash headroom; the web installer remains English/German
+
+Release source:
+
+- [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
+
+Firmware folder:
+
+- [firmware/V2.0](./firmware/V2.0/)
+
 ## V1.3
 
 - Allows the Snapmaker U1 printer address to be configured as IPv4 address or hostname/mDNS name, for example `192.168.1.120` or `u1.local`
