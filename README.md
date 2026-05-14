@@ -182,6 +182,38 @@ For the first flash onto a board that previously had other firmware, it is recom
 
 This helps avoid stale settings in `Preferences`/NVS from older firmware.
 
+### macOS Development Tools
+
+This repository includes small helper scripts in `tools/` for local Arduino
+development on macOS:
+
+- `tools/check-dev-env.sh`
+  Checks Arduino IDE/CLI, ESP32 board support, required libraries, serial ports,
+  and the Apple Silicon/Rosetta requirement.
+- `tools/install-arduino-deps.sh`
+  Installs the ESP32 board package and the required Arduino libraries.
+- `tools/compile-firmware.sh`
+  Builds `source/V2.0/U1_Argus_Remote_RFID_V2.0.ino` by default.
+- `tools/upload-firmware.sh /dev/cu.<device>`
+  Builds and uploads the default firmware to a connected ESP32-C3.
+
+Default build target:
+
+- `esp32:esp32:esp32c3` / **ESP32C3 Dev Module**
+
+For the common ESP32-C3 Super Mini variant you can also build with:
+
+```sh
+FQBN=esp32:esp32:nologo_esp32c3_super_mini tools/compile-firmware.sh
+```
+
+On Apple Silicon Macs, Arduino's bundled `ctags` tool may still be an Intel
+binary. If `tools/check-dev-env.sh` reports that Rosetta is missing, install it:
+
+```sh
+softwareupdate --install-rosetta --agree-to-license
+```
+
 ### Repository Layout
 
 Public firmware binaries are stored in `firmware/<version>/`.

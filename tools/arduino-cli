@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_FILE="$ROOT_DIR/arduino-cli.yaml"
+
+CONFIG_ARGS=()
+if [[ -f "$CONFIG_FILE" ]]; then
+  CONFIG_ARGS=(--config-file "$CONFIG_FILE")
+fi
+
+if command -v arduino-cli >/dev/null 2>&1; then
+  exec arduino-cli "${CONFIG_ARGS[@]}" "$@"
+fi
+
+MACOS_IDE_CLI="/Applications/Arduino IDE.app/Contents/Resources/app/lib/backend/resources/arduino-cli"
+if [[ -x "$MACOS_IDE_CLI" ]]; then
+  exec "$MACOS_IDE_CLI" "${CONFIG_ARGS[@]}" "$@"
+fi
+
+cat >&2 <<'EOF'
+arduino-cli was not found.
+
+Install one of:
+- Arduino IDE 2.x in /Applications
+- Arduino CLI through Homebrew: brew install arduino-cli
+EOF
+exit 127

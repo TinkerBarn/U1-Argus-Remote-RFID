@@ -5,6 +5,7 @@
 *.ino.map
 
 # Build output
+.build/
 build/
 dist/
 
@@ -14,6 +15,12 @@ snapshots/
 
 # OS / editor noise
 .DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100/
+.Trashes/
+.fseventsd/
 Thumbs.db
 desktop.ini
 

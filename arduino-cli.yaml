@@ -1,0 +1,6 @@
+board_manager:
+  additional_urls:
+    - https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+directories:
+  user: /Users/otmarspottel/Library/CloudStorage/OneDrive-Persönlich/Dokumente/Arduino
