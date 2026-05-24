@@ -2,6 +2,20 @@
 
 All public release changes are tracked here.
 
+## ESP32-S3 Dual-Reader V1.0
+
+- Publishes the first ESP32-S3 release, built from the hardware-tested `V0.27` development baseline
+- Adds the ESP32-S3 N16R8 hardware variant with two PN532 readers over independent HSU/UART connections
+- Keeps the hardware-confirmed fast NFC path for both OpenSpool/NTAG and QIDI/MIFARE Classic tags
+- Uses a FreeRTOS task pinned to Core 0 for NFC polling while the Arduino main loop handles web and printer communication on Core 1
+- Adds optional configuration of two preferred Wi-Fi BSSIDs, with ordered priority and SSID fallback only when neither preferred access point is visible
+- Extends the browser web installer with an ESP32-S3 target and hardware-specific release selection lists
+
+Source and binary:
+
+- [source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino](./source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino)
+- [firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin](./firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin)
+
 ## V2.0
 
 - Adds QIDI MIFARE Classic 1K tag support with vendor, material, and color mapping

@@ -78,6 +78,16 @@
       color: #e3fffb; font-size: 0.9rem; margin-bottom: 12px;
     }
     .install-box { display: flex; flex-direction: column; gap: 16px; }
+    .release-picker { display: flex; flex-direction: column; gap: 7px; }
+    .release-picker label { color: var(--muted); font-size: 0.9rem; font-weight: 700; }
+    .release-picker select {
+      width: 100%; padding: 11px 12px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.18); background: rgba(7,17,32,0.8);
+      color: var(--text); font: inherit; cursor: pointer;
+    }
+    .release-picker select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .firmware-path { min-height: 48px; font-size: 0.85rem; font-weight: 500; }
+    .wide { grid-column: 1 / -1; }
     .board, code {
       display: inline-block; padding: 10px 14px; border-radius: 12px;
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
@@ -105,10 +115,10 @@
             <div>
               <h1>U1 Argus Remote RFID</h1>
               <div class="subtitle lang lang-en active">
-                Fast browser-based installer for the V2.0 release of the ESP32-C3 Super Mini + PN532 OpenSpool and QIDI remote RFID reader for Snapmaker U1.
+                Browser-based installer for ESP32-C3 single-reader and ESP32-S3 dual-reader OpenSpool and QIDI RFID hardware for Snapmaker U1.
               </div>
               <div class="subtitle lang lang-de">
-                Schneller browserbasierter Installer fuer das V2.0-Release des ESP32-C3 Super Mini + PN532 OpenSpool und QIDI Remote RFID Readers fuer den Snapmaker U1.
+                Browserbasierter Installer fuer ESP32-C3 Single-Reader und ESP32-S3 Dual-Reader OpenSpool- und QIDI-RFID-Hardware fuer den Snapmaker U1.
               </div>
             </div>
           </div>
@@ -118,60 +128,100 @@
           </div>
         </div>
         <div class="hero-note lang lang-en active">
-          <strong>One firmware, one job, one clean setup.</strong>
-          Connect your ESP32-C3 by USB, click Install, and flash the current public V2.0 release directly from the browser.
+          <strong>Choose your controller and flash its current release.</strong>
+          Connect the ESP32 by USB, select a release if needed, and install the firmware that belongs to your hardware variant.
         </div>
         <div class="hero-note lang lang-de">
-          <strong>Eine Firmware, eine Aufgabe, ein sauberer Setup-Weg.</strong>
-          ESP32-C3 per USB anschliessen, auf Install klicken und das aktuelle oeffentliche V2.0-Release direkt im Browser flashen.
+          <strong>Controller waehlen und das aktuelle Release flashen.</strong>
+          ESP32 per USB anschliessen, bei Bedarf ein Release auswaehlen und die zur Hardware passende Firmware installieren.
         </div>
       </div>
     </section>
 
     <section class="main-grid">
       <article class="card">
-        <div class="badge lang lang-en active">Current Public Release</div>
-        <div class="badge lang lang-de">Aktuelles oeffentliches Release</div>
-        <h2>V2.0</h2>
+        <div class="badge lang lang-en active">Single Reader</div>
+        <div class="badge lang lang-de">Ein Reader</div>
+        <h2>ESP32-C3 Super Mini</h2>
         <div class="install-box">
-          <div class="board">ESP32-C3 Super Mini</div>
-          <esp-web-install-button manifest="./manifest-v2.0.json?v=1"></esp-web-install-button>
+          <div class="release-picker">
+            <label class="lang lang-en active" for="release-c3">Release version</label>
+            <label class="lang lang-de" for="release-c3">Release-Version</label>
+            <select id="release-c3" aria-label="ESP32-C3 release version">
+              <option value="V2.0" selected>V2.0 (latest)</option>
+              <option value="V1.3">V1.3</option>
+              <option value="V1.2">V1.2</option>
+              <option value="V1.1">V1.1</option>
+              <option value="V1.0">V1.0</option>
+            </select>
+          </div>
+          <div id="install-c3"><esp-web-install-button manifest="./manifest-v2.0.json?v=2"></esp-web-install-button></div>
+          <code id="path-c3" class="firmware-path">firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin</code>
           <div class="lang lang-en active">
             <ul>
-              <li>Uses the prepared single-version installer manifest for <code>V2.0</code></li>
-              <li>Flashes the firmware image from <code>firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin</code></li>
+              <li>One PN532 reader connected to the ESP32-C3</li>
+              <li>The newest available C3 release is selected by default</li>
               <li>Use erase for a clean install or when replacing other firmware; disable erase for updates if you want to keep saved settings</li>
-              <li>Best used with Chrome or Edge and a data-capable USB cable</li>
             </ul>
           </div>
           <div class="lang lang-de">
             <ul>
-              <li>Verwendet das vorbereitete Single-Version-Manifest fuer <code>V2.0</code></li>
-              <li>Flasht das Firmware-Image aus <code>firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin</code></li>
+              <li>Ein PN532 Reader am ESP32-C3</li>
+              <li>Das neueste verfuegbare C3-Release ist standardmaessig ausgewaehlt</li>
               <li>Erase fuer Clean Install oder beim Wechsel von anderer Firmware verwenden; bei Updates deaktivieren, wenn gespeicherte Einstellungen erhalten bleiben sollen</li>
-              <li>Am besten mit Chrome oder Edge und einem datenfaehigen USB-Kabel verwenden</li>
             </ul>
           </div>
         </div>
       </article>
 
       <article class="card">
-        <h2 class="lang lang-en active">What You Need Before Flashing</h2>
-        <h2 class="lang lang-de">Was Du Vor Dem Flashen Brauchst</h2>
+        <div class="badge lang lang-en active">Dual Reader</div>
+        <div class="badge lang lang-de">Zwei Reader</div>
+        <h2>ESP32-S3 N16R8</h2>
+        <div class="install-box">
+          <div class="release-picker">
+            <label class="lang lang-en active" for="release-s3">Release version</label>
+            <label class="lang lang-de" for="release-s3">Release-Version</label>
+            <select id="release-s3" aria-label="ESP32-S3 release version">
+              <option value="V1.0" selected>V1.0 (latest)</option>
+            </select>
+          </div>
+          <div id="install-s3"><esp-web-install-button manifest="./manifest-s3-v1.0.json?v=1"></esp-web-install-button></div>
+          <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin</code>
+          <div class="lang lang-en active">
+            <ul>
+              <li>Two local PN532 readers for left and right spool positions</li>
+              <li>The newest available S3 release is selected by default</li>
+              <li>Includes preferred BSSID selection and the dedicated NFC task</li>
+            </ul>
+          </div>
+          <div class="lang lang-de">
+            <ul>
+              <li>Zwei lokale PN532 Reader fuer die linke und rechte Spulenposition</li>
+              <li>Das neueste verfuegbare S3-Release ist standardmaessig ausgewaehlt</li>
+              <li>Mit bevorzugten BSSIDs und separatem NFC-Task</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="card wide">
+        <h2 class="lang lang-en active">Before Flashing</h2>
+        <h2 class="lang lang-de">Vor Dem Flashen</h2>
         <div class="lang lang-en active">
           <ul>
-            <li>ESP32-C3 Super Mini</li>
-            <li>PN532 in HSU mode</li>
-            <li>4 connection wires</li>
+            <li>Use an ESP32-C3 with one PN532 or an ESP32-S3 N16R8 with two PN532 modules, all in HSU mode</li>
+            <li>Both hardware variants connect to 2.4 GHz Wi-Fi only</li>
             <li>Snapmaker U1 with paxx12 Extended Firmware and external filament detection enabled</li>
+            <li>Chrome or Edge and a data-capable USB cable</li>
           </ul>
         </div>
         <div class="lang lang-de">
           <ul>
-            <li>ESP32-C3 Super Mini</li>
-            <li>PN532 im HSU-Modus</li>
-            <li>4 Verbindungskabel</li>
+            <li>ESP32-C3 mit einem PN532 oder ESP32-S3 N16R8 mit zwei PN532-Modulen, jeweils im HSU-Modus</li>
+            <li>Beide Hardwarevarianten verbinden sich ausschliesslich mit 2,4-GHz-WLAN</li>
             <li>Snapmaker U1 mit paxx12 Extended Firmware und aktivierter externer Filament Detection</li>
+            <li>Chrome oder Edge und ein datenfaehiges USB-Kabel</li>
           </ul>
         </div>
 
@@ -207,6 +257,28 @@
       en: document.getElementById("lang-en"),
       de: document.getElementById("lang-de")
     };
+    const releases = {
+      c3: {
+        "V2.0": { manifest: "./manifest-v2.0.json?v=2", path: "firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin" },
+        "V1.3": { manifest: "./manifest-v1.3.json?v=2", path: "firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin" },
+        "V1.2": { manifest: "./manifest-v1.2.json?v=2", path: "firmware/V1.2/U1_Argus_Remote_RFID_V1.2.ino.merged.bin" },
+        "V1.1": { manifest: "./manifest-v1.1.json?v=2", path: "firmware/V1.1/U1_Argus_Remote_RFID_V1.1.ino.merged.bin" },
+        "V1.0": { manifest: "./manifest-v1.0.json?v=2", path: "firmware/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin" }
+      },
+      s3: {
+        "V1.0": { manifest: "./manifest-s3-v1.0.json?v=1", path: "firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin" }
+      }
+    };
+
+    function selectRelease(family) {
+      const version = document.getElementById("release-" + family).value;
+      const release = releases[family][version];
+      const target = document.getElementById("install-" + family);
+      const installButton = document.createElement("esp-web-install-button");
+      installButton.setAttribute("manifest", release.manifest);
+      target.replaceChildren(installButton);
+      document.getElementById("path-" + family).textContent = release.path;
+    }
 
     function setLang(lang) {
       document.documentElement.lang = lang;
@@ -214,11 +286,17 @@
       document.querySelectorAll(".lang-" + lang).forEach(el => el.classList.add("active"));
       buttons.en.classList.toggle("active", lang === "en");
       buttons.de.classList.toggle("active", lang === "de");
+      document.querySelector('#release-c3 option[value="V2.0"]').textContent = lang === "de" ? "V2.0 (neueste)" : "V2.0 (latest)";
+      document.querySelector('#release-s3 option[value="V1.0"]').textContent = lang === "de" ? "V1.0 (neueste)" : "V1.0 (latest)";
+      document.getElementById("release-c3").setAttribute("aria-label", lang === "de" ? "ESP32-C3 Release-Version" : "ESP32-C3 release version");
+      document.getElementById("release-s3").setAttribute("aria-label", lang === "de" ? "ESP32-S3 Release-Version" : "ESP32-S3 release version");
       localStorage.setItem("u1argus-installer-lang", lang);
     }
 
     buttons.en.addEventListener("click", () => setLang("en"));
     buttons.de.addEventListener("click", () => setLang("de"));
+    document.getElementById("release-c3").addEventListener("change", () => selectRelease("c3"));
+    document.getElementById("release-s3").addEventListener("change", () => selectRelease("s3"));
 
     const stored = localStorage.getItem("u1argus-installer-lang");
     setLang(stored === "de" ? "de" : "en");

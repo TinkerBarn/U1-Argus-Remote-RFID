@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  Remote OpenSpool and QIDI RFID reader for Snapmaker U1 with ESP32-C3 Super Mini and PN532.
+  Remote OpenSpool and QIDI RFID reader for Snapmaker U1, available as a compact ESP32-C3 single-reader build and a dual-reader ESP32-S3 build.
 </p>
 
 <p align="center">
@@ -28,9 +28,9 @@
 
 ## What This Reader Can Do
 
-- Read **OpenSpool Standard** RFID/NFC tags through a **PN532** in **HSU/UART** mode
+- Read **OpenSpool Standard** RFID/NFC tags through one or two **PN532** modules in **HSU/UART** mode
 - Read **QIDI** MIFARE Classic 1K tags with material, vendor, and color mapping
-- Upload a reduced QIDI `officiall_filas_list.cfg` through setup and store it persistently on the ESP32-C3
+- Upload a reduced QIDI `officiall_filas_list.cfg` through setup and store it persistently on the ESP32
 - Send mapped filament information to a **Snapmaker U1** over the external filament-detection API
 - Offer a built-in **setup hotspot** with captive portal for first configuration
 - Persist Wi-Fi, printer, dashboard-reader, and QIDI mapping settings in ESP32 `Preferences`
@@ -41,8 +41,53 @@
   - last valid tag information
   - last webhook result
   - quick buttons to jump between up to **4 readers**
-- Keep the device UI compact and English-only for ESP32-C3 flash headroom
+- Provide a dual-reader ESP32-S3 firmware with optional preferred Wi-Fi BSSIDs and a dedicated NFC polling task
+- Keep the ESP32-C3 device UI compact and English-only because its release build is close to its available application space
 - Support **English and German** in the web installer
+
+---
+
+## Choose Your Hardware Variant
+
+There are two supported hardware approaches:
+
+| Variant | Readers per controller | Best fit | Architecture |
+| --- | ---: | --- | --- |
+| **ESP32-C3 Super Mini + 1 PN532** | 1 | Small, low-cost readers; deploy one controller per spool/reader position | Single-core firmware; Wi-Fi, dashboard, printer API, and NFC handling share one MCU core |
+| **ESP32-S3 N16R8 + 2 PN532** | 2 | One two-spool reader unit with more expansion room | Dual-core firmware; a FreeRTOS NFC task polls both PN532 readers while the Arduino main loop serves Wi-Fi, dashboard, and printer communication |
+
+Both ESP32-C3 and ESP32-S3 provide 2.4 GHz `802.11 b/g/n` Wi-Fi according to Espressif. The S3 advantage in this project is not a claim of a different Wi-Fi standard: it is the substantially stronger application platform around the network traffic. The ESP32-C3 is a single-core RISC-V MCU up to 160 MHz with 400 KB SRAM. The ESP32-S3 is a dual-core Xtensa LX7 MCU up to 240 MHz with 512 KB internal SRAM and support for larger external flash and PSRAM.
+
+The **ESP32-S3 N16R8** build used here provides 16 MB flash and 8 MB PSRAM at board level. That gives a practical path for larger dashboards and future functions, although builds must use a suitable flash partition layout to expose extra application space. By contrast, the current feature-rich ESP32-C3 release was already deliberately kept compact to remain within its application partition.
+
+### ESP32-S3 Runtime Split
+
+The ESP32-S3 firmware uses the ESP-IDF/Arduino FreeRTOS runtime:
+
+- **Core 0**: a pinned NFC task alternates the two PN532 readers and performs the time-sensitive OpenSpool/QIDI read path.
+- **Core 1**: the Arduino `loop()` continues servicing the web interface, Wi-Fi recovery, printer queries, and outbound tag updates.
+
+This prevents blocking PN532 transactions from making the web/network path compete for the same execution time during a read. The confirmed fast NFC baseline uses raw PN532 HSU detection with `60 ms` detect timeouts and a single QIDI authentication plus block read.
+
+---
+
+## Development And Release Lines
+
+The two controller variants now have different long-term roles:
+
+| Line | Git branch | Purpose |
+| --- | --- | --- |
+| **ESP32-S3** | `main` | Active development line for new features, additional tag protocols, and future OpenRFID compatibility |
+| **ESP32-C3** | `esp32-c3-maintenance` | Stable compact single-reader line; receives bug fixes and compatibility repairs only |
+
+The ESP32-C3 firmware is already close to the practical flash headroom of this hardware variant, so new protocol work will target ESP32-S3. Shared public material such as this README, the web installer, user guides, and published manifests remains on `main`, where both installable hardware variants are presented together.
+
+Hardware-specific release tags avoid ambiguity between versions:
+
+- `esp32-c3-v2.0` marks the C3 maintenance baseline.
+- `esp32-s3-v1.0` marks the first S3 release and the starting point for the active development line.
+
+The existing ESP32-C3 release paths under `source/<version>/` and `firmware/<version>/` remain valid for compatibility with existing installer links. New S3 releases are kept under `source/ESP32-S3/<version>/` and `firmware/ESP32-S3/<version>/`.
 
 ---
 
@@ -61,14 +106,15 @@ Without that prerequisite, the remote RFID reader cannot update the U1 channel s
 
 ---
 
-## Hardware
+## Required Hardware
 
-### Bill Of Materials
+### ESP32-C3 Single-Reader Bill Of Materials
 
 - **ESP32-C3 Super Mini**
 - **PN532 NFC/RFID module**
 - **4 hookup wires**
   Usually already included with many PN532 boards
+- **USB cable** for flashing and later power
 
 ### PN532 Mode
 
@@ -79,7 +125,14 @@ Important note:
 - On the common red PN532 breakout boards, **HSU/UART is usually already the default mode**
 - The printed pin labels may still say `SDA` and `SCL`, even though the board is being used in HSU/UART mode
 
-After the ESP32-C3 has been programmed, only a **USB cable for power** is needed.
+### ESP32-S3 Dual-Reader Bill Of Materials
+
+- **ESP32-S3 N16R8** board
+- **2 x PN532 NFC/RFID modules**
+- Hookup wires for power and two independent HSU/UART connections
+- **USB cable** for flashing and later power
+
+After the controller has been programmed, only a **USB cable for power** is needed.
 
 The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then happens entirely over **Wi-Fi**.
 
@@ -87,13 +140,13 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 
 ## Wiring
 
-### Schematic
+### ESP32-C3 Schematic
 
 <p align="center">
   <img src="./assets/hardware/wiring-schematic.png" alt="ESP32-C3 Super Mini to PN532 wiring" width="760">
 </p>
 
-### Pinout List
+### ESP32-C3 Pinout List
 
 | ESP32-C3 Super Mini | PN532 board pin | Note |
 | --- | --- | --- |
@@ -107,15 +160,37 @@ The firmware release `V2.0` uses:
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
 
+### ESP32-S3 Dual-Reader Pinout List
+
+| ESP32-S3 N16R8 | PN532 board pin | Reader | Note |
+| --- | --- | --- | --- |
+| `3V3` | `VCC` | Both | Power |
+| `GND` | `GND` | Both | Ground |
+| `GPIO11` | `SCL` | Left spool | HSU TX line to PN532 board |
+| `GPIO12` | `SDA` | Left spool | HSU RX line from PN532 board |
+| `GPIO13` | `SCL` | Right spool | HSU TX line to PN532 board |
+| `GPIO14` | `SDA` | Right spool | HSU RX line from PN532 board |
+
+The ESP32-S3 firmware uses two independent UARTs, one for each PN532. The printed `SDA`/`SCL` labels still refer to the PN532 board pins used as HSU serial connections.
+
 ---
 
 ## Installation
 
 ### Web Installer
 
-Use the web installer to flash the reader directly from the browser:
+The web installer supports both public hardware variants directly from the browser:
 
 - `https://tinkerbarn.github.io/U1-Argus-Remote-RFID/`
+
+Available selections:
+
+| Hardware variant | Releases in installer | Default selection |
+| --- | --- | --- |
+| ESP32-C3 single-reader | `V2.0`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V2.0` |
+| ESP32-S3 dual-reader | `V1.0` | `V1.0` |
+
+Release lists are ordered newest first; the latest available release for each hardware variant is selected when the page opens.
 
 Recommended browser:
 
@@ -149,13 +224,21 @@ If the ESP32-C3 needs to be forced into flashing mode:
 
 Then start the flash process again in the web installer.
 
-### Arduino Source Release
+### Arduino Source Releases
 
-Public release source:
+ESP32-C3 single-reader public release source:
 
 - [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
 
-Development iterations are kept in the local `dev/` folder and are intentionally not published.
+ESP32-S3 dual-reader source:
+
+- [source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino](./source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino)
+
+ESP32-S3 dual-reader merged binary:
+
+- [firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin](./firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin)
+
+The ESP32-S3 release can be installed through the web installer, manually flashed from the merged binary, or built from Arduino source.
 
 ### Arduino IDE
 
@@ -165,9 +248,13 @@ If you want to build or flash the source manually in Arduino IDE, install:
 
 - **ESP32 by Espressif Systems**
 
-Recommended target board for this project:
+Target board for the ESP32-C3 single-reader build:
 
 - **ESP32C3 Dev Module**
+
+Target board for the ESP32-S3 dual-reader build:
+
+- **ESP32S3 Dev Module**
 
 #### Required Libraries
 
@@ -197,7 +284,7 @@ development on macOS:
 - `tools/upload-firmware.sh /dev/cu.<device>`
   Builds and uploads the default firmware to a connected ESP32-C3.
 
-Default build target:
+Default build target for the web-installer/C3 release:
 
 - `esp32:esp32:esp32c3` / **ESP32C3 Dev Module**
 
@@ -205,6 +292,12 @@ For the common ESP32-C3 Super Mini variant you can also build with:
 
 ```sh
 FQBN=esp32:esp32:nologo_esp32c3_super_mini tools/compile-firmware.sh
+```
+
+Build the ESP32-S3 dual-reader source with:
+
+```sh
+FQBN=esp32:esp32:esp32s3 tools/compile-firmware.sh source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino
 ```
 
 On Apple Silicon Macs, Arduino's bundled `ctags` tool may still be an Intel
@@ -216,11 +309,24 @@ softwareupdate --install-rosetta --agree-to-license
 
 ### Repository Layout
 
-Public firmware binaries are stored in `firmware/<version>/`.
+Public ESP32-C3 browser-installer firmware binaries are stored in `firmware/<version>/`.
 
-The matching Arduino source for each public release is stored in `source/<version>/`.
+The matching ESP32-C3 Arduino source for each public release is stored in `source/<version>/`.
 
-Local development iterations such as `V1.0.1`, `V1.0.2`, and later candidates live in `dev/`, which is ignored by Git and not part of public releases.
+ESP32-S3 dual-reader source is stored in `source/ESP32-S3/<version>/`.
+
+ESP32-S3 dual-reader browser-installer/merged binaries are stored in `firmware/ESP32-S3/<version>/`.
+
+Local development iterations live in `dev/`, which is ignored by Git and not part of public releases.
+
+---
+
+## User Guides
+
+- [ESP32-C3 Single-Reader User Guide](./docs/USER_GUIDE_ESP32-C3.md)
+- [ESP32-S3 Dual-Reader User Guide](./docs/USER_GUIDE_ESP32-S3.md)
+
+Both guides describe the dashboard, web setup, QIDI `officiall_filas_list.cfg` upload, and the supported 2.4 GHz Wi-Fi operation. The ESP32-S3 guide also covers preferred BSSIDs for installations with multiple access points.
 
 ---
 
@@ -230,7 +336,7 @@ On first boot, the reader opens a device-specific setup hotspot:
 
 - **`U1-Argus-Setup-XXXX`**
 
-The suffix is generated from the ESP32-C3 device ID. This avoids conflicts when several readers are powered at the same time.
+The suffix is generated from the controller device ID. This avoids conflicts when several readers are powered at the same time.
 
 Normally the captive portal starts automatically.
 
@@ -242,14 +348,15 @@ Then configure the reader like this:
 
 1. Enter the SSID of your home Wi-Fi
 2. Enter the Wi-Fi password
-3. Enter the IP address or mDNS hostname of your Snapmaker U1
-4. Keep port `7125` unless you intentionally use a different port
-5. Enter an mDNS name
+3. On the ESP32-S3 build, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
+4. Enter the IP address or mDNS hostname of your Snapmaker U1
+5. Keep port `7125` unless you intentionally use a different port
+6. Enter an mDNS name
    This must be unique if you use multiple readers
-6. Choose the Tool Head the reader belongs to
-7. Optionally add already active readers as IP or full URL
+7. Choose the Tool Head assignment: one local reader for ESP32-C3, or left/right spool readers for ESP32-S3
+8. Optionally add already active readers as IP or full URL
    These later appear in the dashboard as quick-jump buttons
-8. Save and reboot
+9. Save and reboot
 
 After configuration, the dashboard can be opened with:
 
@@ -287,9 +394,30 @@ Replace `example` with the hostname you entered in setup.
 
 ---
 
+## ESP32-S3 Dual-Reader V1.0
+
+`V1.0` is the first public ESP32-S3 N16R8 dual-reader release. It is built from the hardware-tested `V0.27` development baseline, which remains in the local `dev/` workflow rather than becoming a public release number.
+
+Highlights:
+
+- Drives two PN532 readers over independent HSU/UART connections for left and right spool positions
+- Reads both OpenSpool/NTAG and QIDI/MIFARE Classic tags quickly with the validated raw PN532 HSU path
+- Runs NFC polling in a FreeRTOS task pinned to Core 0 while the web interface and printer network workflow remain on the Arduino main loop on Core 1
+- Adds optional preference for up to two Wi-Fi BSSIDs, with fallback to another access point of the configured SSID only when neither preferred BSSID is visible
+- Provides additional hardware capacity on an ESP32-S3 N16R8 board for future feature work
+
+Source and binary:
+
+- [source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino](./source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino)
+- [firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin](./firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin)
+
+The browser web installer provides separate ESP32-C3 and ESP32-S3 install targets so the correct chip-specific binary can be selected before flashing.
+
+---
+
 ## Release V2.0
 
-`V2.0` is the current public release.
+`V2.0` is the current ESP32-C3 single-reader public release and web-installer target.
 
 Highlights:
 
@@ -407,6 +535,14 @@ Release source:
 Firmware folder:
 
 - [firmware/V1.0](./firmware/V1.0/)
+
+---
+
+## Technical References
+
+- [ESP32-C3 Series Datasheet - Espressif](https://documentation.espressif.com/esp32-c3_datasheet_en.html)
+- [ESP32-S3 product overview - Espressif](https://www.espressif.com/en/products/socs/esp32-s3/)
+- [ESP-IDF FreeRTOS overview for ESP32-S3 - Espressif](https://docs.espressif.com/projects/esp-idf/en/release-v5.3/esp32s3/api-reference/system/freertos.html)
 
 ---
 

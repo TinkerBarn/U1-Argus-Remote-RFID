@@ -1,0 +1,17 @@
+{
+  "name": "U1 Argus Remote RFID - ESP32-S3 Dual Reader",
+  "version": "V1.0",
+  "home_assistant_domain": "",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        {
+          "path": "firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin",
+          "offset": 0
+        }
+      ]
+    }
+  ]
+}
