@@ -53,17 +53,6 @@
     .logo img { width: 100%; height: 100%; object-fit: cover; }
     h1 { margin: 0; font-size: 2.35rem; line-height: 1.06; }
     .subtitle { margin-top: 8px; color: var(--muted); max-width: 860px; font-size: 1.02rem; }
-    .lang-switch { display: flex; gap: 8px; flex-wrap: wrap; }
-    .lang-switch button {
-      border: 1px solid rgba(255,255,255,0.16); background: var(--button); color: var(--text);
-      padding: 9px 12px; border-radius: 12px; cursor: pointer; font-size: 0.92rem;
-      transition: 0.18s ease; min-width: 56px;
-    }
-    .lang-switch button:hover { background: var(--button-hover); transform: translateY(-1px); }
-    .lang-switch button.active {
-      background: linear-gradient(135deg, rgba(29,199,255,0.28), rgba(43,208,182,0.22));
-      border-color: rgba(255,255,255,0.28); font-weight: 700;
-    }
     .hero-note {
       margin-top: 18px; padding: 16px 18px; border-radius: 16px;
       background: rgba(8, 15, 28, 0.45); border: 1px solid rgba(255,255,255,0.10); color: var(--muted);
@@ -96,8 +85,6 @@
     ul { margin: 10px 0 0; padding-left: 20px; }
     li { margin-bottom: 8px; color: var(--muted); }
     a { color: #c7f0ff; }
-    .lang { display: none; }
-    .lang.active { display: block; }
     .footer-note { margin-top: 24px; color: var(--muted); font-size: 0.95rem; text-align: center; }
     @media (max-width: 980px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
@@ -114,39 +101,26 @@
             </div>
             <div>
               <h1>U1 Argus Remote RFID</h1>
-              <div class="subtitle lang lang-en active">
+              <div class="subtitle">
                 Browser-based installer for ESP32-C3 single-reader and ESP32-S3 dual-reader OpenSpool and QIDI RFID hardware for Snapmaker U1.
-              </div>
-              <div class="subtitle lang lang-de">
-                Browserbasierter Installer fuer ESP32-C3 Single-Reader und ESP32-S3 Dual-Reader OpenSpool- und QIDI-RFID-Hardware fuer den Snapmaker U1.
               </div>
             </div>
           </div>
-          <div class="lang-switch">
-            <button id="lang-en" class="active" type="button">EN</button>
-            <button id="lang-de" type="button">DE</button>
-          </div>
         </div>
-        <div class="hero-note lang lang-en active">
+        <div class="hero-note">
           <strong>Choose your controller and flash its current release.</strong>
           Connect the ESP32 by USB, select a release if needed, and install the firmware that belongs to your hardware variant.
-        </div>
-        <div class="hero-note lang lang-de">
-          <strong>Controller waehlen und das aktuelle Release flashen.</strong>
-          ESP32 per USB anschliessen, bei Bedarf ein Release auswaehlen und die zur Hardware passende Firmware installieren.
         </div>
       </div>
     </section>
 
     <section class="main-grid">
       <article class="card">
-        <div class="badge lang lang-en active">Single Reader</div>
-        <div class="badge lang lang-de">Ein Reader</div>
+        <div class="badge">Single Reader</div>
         <h2>ESP32-C3 Super Mini</h2>
         <div class="install-box">
           <div class="release-picker">
-            <label class="lang lang-en active" for="release-c3">Release version</label>
-            <label class="lang lang-de" for="release-c3">Release-Version</label>
+            <label for="release-c3">Release version</label>
             <select id="release-c3" aria-label="ESP32-C3 release version">
               <option value="V2.0" selected>V2.0 (latest)</option>
               <option value="V1.3">V1.3</option>
@@ -157,58 +131,41 @@
           </div>
           <div id="install-c3"><esp-web-install-button manifest="./manifest-v2.0.json?v=2"></esp-web-install-button></div>
           <code id="path-c3" class="firmware-path">firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin</code>
-          <div class="lang lang-en active">
+          <div>
             <ul>
               <li>One PN532 reader connected to the ESP32-C3</li>
               <li>The newest available C3 release is selected by default</li>
               <li>Use erase for a clean install or when replacing other firmware; disable erase for updates if you want to keep saved settings</li>
             </ul>
           </div>
-          <div class="lang lang-de">
-            <ul>
-              <li>Ein PN532 Reader am ESP32-C3</li>
-              <li>Das neueste verfuegbare C3-Release ist standardmaessig ausgewaehlt</li>
-              <li>Erase fuer Clean Install oder beim Wechsel von anderer Firmware verwenden; bei Updates deaktivieren, wenn gespeicherte Einstellungen erhalten bleiben sollen</li>
-            </ul>
-          </div>
         </div>
       </article>
 
       <article class="card">
-        <div class="badge lang lang-en active">Dual Reader</div>
-        <div class="badge lang lang-de">Zwei Reader</div>
+        <div class="badge">Dual Reader</div>
         <h2>ESP32-S3 N16R8</h2>
         <div class="install-box">
           <div class="release-picker">
-            <label class="lang lang-en active" for="release-s3">Release version</label>
-            <label class="lang lang-de" for="release-s3">Release-Version</label>
+            <label for="release-s3">Release version</label>
             <select id="release-s3" aria-label="ESP32-S3 release version">
               <option value="V1.0" selected>V1.0 (latest)</option>
             </select>
           </div>
           <div id="install-s3"><esp-web-install-button manifest="./manifest-s3-v1.0.json?v=1"></esp-web-install-button></div>
           <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin</code>
-          <div class="lang lang-en active">
+          <div>
             <ul>
               <li>Two local PN532 readers for left and right spool positions</li>
               <li>The newest available S3 release is selected by default</li>
               <li>Includes preferred BSSID selection and the dedicated NFC task</li>
             </ul>
           </div>
-          <div class="lang lang-de">
-            <ul>
-              <li>Zwei lokale PN532 Reader fuer die linke und rechte Spulenposition</li>
-              <li>Das neueste verfuegbare S3-Release ist standardmaessig ausgewaehlt</li>
-              <li>Mit bevorzugten BSSIDs und separatem NFC-Task</li>
-            </ul>
-          </div>
         </div>
       </article>
 
       <article class="card wide">
-        <h2 class="lang lang-en active">Before Flashing</h2>
-        <h2 class="lang lang-de">Vor Dem Flashen</h2>
-        <div class="lang lang-en active">
+        <h2>Before Flashing</h2>
+        <div>
           <ul>
             <li>Use an ESP32-C3 with one PN532 or an ESP32-S3 N16R8 with two PN532 modules, all in HSU mode</li>
             <li>Both hardware variants connect to 2.4 GHz Wi-Fi only</li>
@@ -216,33 +173,16 @@
             <li>Chrome or Edge and a data-capable USB cable</li>
           </ul>
         </div>
-        <div class="lang lang-de">
-          <ul>
-            <li>ESP32-C3 mit einem PN532 oder ESP32-S3 N16R8 mit zwei PN532-Modulen, jeweils im HSU-Modus</li>
-            <li>Beide Hardwarevarianten verbinden sich ausschliesslich mit 2,4-GHz-WLAN</li>
-            <li>Snapmaker U1 mit paxx12 Extended Firmware und aktivierter externer Filament Detection</li>
-            <li>Chrome oder Edge und ein datenfaehiges USB-Kabel</li>
-          </ul>
-        </div>
-
-        <div class="hero-note lang lang-en active">
+        <div class="hero-note">
           <strong>After flashing</strong>
           Connect to the hotspot <code>U1-Argus-Setup-XXXX</code>. The captive portal should open automatically. If not, open <code>http://192.168.4.1</code>.
-        </div>
-        <div class="hero-note lang lang-de">
-          <strong>Nach dem Flashen</strong>
-          Mit dem Hotspot <code>U1-Argus-Setup-XXXX</code> verbinden. Das Captive Portal sollte automatisch starten. Falls nicht, <code>http://192.168.4.1</code> oeffnen.
         </div>
       </article>
     </section>
 
-    <p class="footer-note lang lang-en active">
+    <p class="footer-note">
       If the board is not detected immediately, reconnect it and try again. Some boards may require BOOT to be held while connecting.
       <br><a href="https://github.com/TinkerBarn/U1-Argus-Remote-RFID">Back to the GitHub repository</a>
-    </p>
-    <p class="footer-note lang lang-de">
-      Wenn das Board nicht sofort erkannt wird, bitte erneut verbinden und noch einmal versuchen. Bei manchen Boards muss BOOT beim Verbinden gehalten werden.
-      <br><a href="https://github.com/TinkerBarn/U1-Argus-Remote-RFID">Zurueck zum GitHub Repository</a>
     </p>
 
     <p class="footer-note">
@@ -253,10 +193,6 @@
   </div>
 
   <script>
-    const buttons = {
-      en: document.getElementById("lang-en"),
-      de: document.getElementById("lang-de")
-    };
     const releases = {
       c3: {
         "V2.0": { manifest: "./manifest-v2.0.json?v=2", path: "firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin" },
@@ -280,26 +216,8 @@
       document.getElementById("path-" + family).textContent = release.path;
     }
 
-    function setLang(lang) {
-      document.documentElement.lang = lang;
-      document.querySelectorAll(".lang").forEach(el => el.classList.remove("active"));
-      document.querySelectorAll(".lang-" + lang).forEach(el => el.classList.add("active"));
-      buttons.en.classList.toggle("active", lang === "en");
-      buttons.de.classList.toggle("active", lang === "de");
-      document.querySelector('#release-c3 option[value="V2.0"]').textContent = lang === "de" ? "V2.0 (neueste)" : "V2.0 (latest)";
-      document.querySelector('#release-s3 option[value="V1.0"]').textContent = lang === "de" ? "V1.0 (neueste)" : "V1.0 (latest)";
-      document.getElementById("release-c3").setAttribute("aria-label", lang === "de" ? "ESP32-C3 Release-Version" : "ESP32-C3 release version");
-      document.getElementById("release-s3").setAttribute("aria-label", lang === "de" ? "ESP32-S3 Release-Version" : "ESP32-S3 release version");
-      localStorage.setItem("u1argus-installer-lang", lang);
-    }
-
-    buttons.en.addEventListener("click", () => setLang("en"));
-    buttons.de.addEventListener("click", () => setLang("de"));
     document.getElementById("release-c3").addEventListener("change", () => selectRelease("c3"));
     document.getElementById("release-s3").addEventListener("change", () => selectRelease("s3"));
-
-    const stored = localStorage.getItem("u1argus-installer-lang");
-    setLang(stored === "de" ? "de" : "en");
   </script>
 </body>
 </html>

@@ -2,6 +2,11 @@
 
 All public release changes are tracked here.
 
+## Documentation And Installer Maintenance
+
+- Converts the current ESP32-C3 and ESP32-S3 user guides to English-only documentation
+- Simplifies the current browser installer to an English-only interface while retaining hardware-specific release selection
+
 ## ESP32-S3 Dual-Reader V1.0
 
 - Publishes the first ESP32-S3 release, built from the hardware-tested `V0.27` development baseline
@@ -27,7 +32,7 @@ Source and binary:
 - Supports larger NTAG/OpenSpool payloads such as tags with opacity, weight, and multiple extra colors
 - Parses OpenSpool JSON once and reuses the mapped fields for printer payloads, comparisons, and dashboard state
 - Keeps standard serial logs active while verbose debug remains disabled by default
-- Keeps the device UI English-only to preserve ESP32-C3 flash headroom; the web installer remains English/German
+- Keeps the device UI and current web installer English-only for a compact, consistent public interface
 
 Release source:
 

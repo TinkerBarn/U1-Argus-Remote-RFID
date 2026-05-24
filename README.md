@@ -43,7 +43,7 @@
   - quick buttons to jump between up to **4 readers**
 - Provide a dual-reader ESP32-S3 firmware with optional preferred Wi-Fi BSSIDs and a dedicated NFC polling task
 - Keep the ESP32-C3 device UI compact and English-only because its release build is close to its available application space
-- Support **English and German** in the web installer
+- Keep current documentation and the web installer in English
 
 ---
 
@@ -429,7 +429,7 @@ Highlights:
 - Supports larger NTAG/OpenSpool payloads, including tags with opacity, weight, and multiple extra color fields
 - Parses OpenSpool JSON only once before building the printer payload and dashboard state
 - Keeps standard serial logs for Wi-Fi, mDNS, PN532, NFC read timing, and API activity while keeping verbose debug disabled by default
-- Device UI is English-only to preserve ESP32-C3 flash headroom; the web installer remains English/German
+- Device UI and the current web installer are English-only to preserve a compact, consistent public interface
 
 Release source:
 

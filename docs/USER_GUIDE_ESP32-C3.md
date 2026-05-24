@@ -1,104 +1,100 @@
 # User Guide: ESP32-C3 Single-Reader
 
-Dieser Guide beschreibt die ESP32-C3-Version des U1 Argus Remote RFID Readers.
-Sie steuert einen PN532-Leser und überträgt erkannte Filamentdaten per WLAN an
-einen frei zugewiesenen Tool Head des Snapmaker U1.
+This guide describes the ESP32-C3 version of the U1 Argus Remote RFID reader.
+It controls one PN532 reader and sends detected filament data over Wi-Fi to an
+assigned Snapmaker U1 Tool Head.
 
-## Voraussetzungen
+## Requirements
 
-- ESP32-C3 Super Mini mit einem PN532 in HSU/UART-Modus
-- Installierte ESP32-C3-Firmware, aktuell `V2.0`
-- Snapmaker U1 mit Extended Firmware
-- In der Drucker-Firmware ist **Filament Detection** auf **External** gesetzt
-- Ein WLAN mit **2,4 GHz**
+- ESP32-C3 Super Mini with one PN532 module in HSU/UART mode
+- Installed ESP32-C3 firmware, currently `V2.0`
+- Snapmaker U1 with Extended Firmware
+- **Filament Detection** set to **External** in the printer firmware settings
+- A **2.4 GHz** Wi-Fi network
 
-Der ESP32-C3 unterstützt WLAN nach `802.11 b/g/n` im 2,4-GHz-Band. Ein
-reines 5-GHz-WLAN kann nicht verwendet werden. Bei einem gemeinsamen Namen
-für 2,4 und 5 GHz muss der Router weiterhin ein erreichbares 2,4-GHz-Netz
-bereitstellen.
+The ESP32-C3 supports `802.11 b/g/n` Wi-Fi in the 2.4 GHz band. It cannot
+connect to a 5 GHz-only network. If the router uses a shared network name for
+2.4 GHz and 5 GHz, an accessible 2.4 GHz network must still be available.
 
-## Erste Einrichtung
+## First Setup
 
-Beim ersten Start oder nach dem Löschen der Einstellungen öffnet das Gerät
-einen Setup-Hotspot:
+On first boot, or after stored settings have been cleared, the device opens a
+setup hotspot:
 
 - SSID: `U1-Argus-Setup-XXXX`
-- Konfigurationsseite: `http://192.168.4.1`
+- Configuration page: `http://192.168.4.1`
 
-Verbinden Sie ein Smartphone oder einen Computer mit diesem Hotspot. Falls das
-Captive Portal nicht automatisch erscheint, öffnen Sie die Adresse manuell.
+Connect a phone or computer to this hotspot. If the captive portal does not
+open automatically, open the configuration address manually.
 
-## Setup-Webinterface
+## Setup Web Interface
 
-| Einstellung | Bedeutung |
+| Setting | Purpose |
 | --- | --- |
-| Wi-Fi SSID / Password | Zugang zum 2,4-GHz-WLAN, in dem auch der Drucker erreichbar ist |
-| Hostname | Name des Readers im lokalen Netz, beispielsweise `argus-left`; erreichbar als `http://argus-left.local` |
-| Printer IP / Hostname | IP-Adresse oder mDNS-Hostname des Snapmaker U1 |
-| Printer Port | API-Port des Druckers; standardmäßig `7125` |
-| Tool Head | Kanal, der mit dem lokalen PN532-Leser aktualisiert wird |
-| Additional Readers | Optionale Links zu weiteren separaten Reader-Geräten für die Dashboard-Navigation |
-| QIDI config upload | Aktualisiert Material- und Herstellernamen für QIDI-Tags |
-| QIDI config reset | Stellt die eingebauten QIDI-Standardzuordnungen wieder her |
+| Wi-Fi SSID / Password | Access to the 2.4 GHz Wi-Fi network where the printer is reachable |
+| Hostname | Reader name on the local network, for example `argus-left`; accessible as `http://argus-left.local` |
+| Printer IP / Hostname | IP address or mDNS hostname of the Snapmaker U1 |
+| Printer Port | Printer API port; default is `7125` |
+| Tool Head | Channel updated by the local PN532 reader |
+| Additional Readers | Optional links to separate reader devices for dashboard navigation |
+| QIDI config upload | Updates QIDI material and manufacturer names |
+| QIDI config reset | Restores the built-in QIDI default mappings |
 
-Die C3-Version betreibt genau einen lokalen RFID-Leser. Wenn mehrere Spulen
-überwacht werden sollen, können mehrere C3-Reader eingerichtet und gegenseitig
-im Dashboard verlinkt werden.
+The C3 version operates exactly one local RFID reader. To monitor multiple
+spools, configure multiple C3 reader devices and link their dashboards.
 
-## Unterstützte Tags
+## Supported Tags
 
-- **OpenSpool / NTAG**: Liest OpenSpool-NDEF-Daten aus und sendet die
-  aufbereiteten Materialinformationen an den zugeordneten Tool Head.
-- **QIDI / MIFARE Classic**: Authentifiziert den QIDI-Datenblock, liest
-  Material-, Hersteller- und Farbcodes und setzt den Druckerkanal.
+- **OpenSpool / NTAG**: Reads OpenSpool NDEF data and sends the mapped
+  material information to the assigned Tool Head.
+- **QIDI / MIFARE Classic**: Authenticates the QIDI data block, reads
+  material, manufacturer, and color codes, and updates the printer channel.
 
 ## QIDI `officiall_filas_list.cfg`
 
-Die Firmware enthält bereits kompakte Standardzuordnungen für gängige QIDI
-Plus4-Materialien. Im Setup kann zusätzlich die QIDI-Konfigurationsdatei
-`officiall_filas_list.cfg` hochgeladen werden. Die Schreibweise mit doppeltem
-`l` entspricht dem von der Firmware erwarteten Dateinamen.
+The firmware already contains compact default mappings for common QIDI Plus4
+materials. The optional QIDI configuration file
+`officiall_filas_list.cfg` can be uploaded in Setup. The double `l` spelling
+is the filename expected by the firmware.
 
-Der Upload:
+The upload:
 
-- aktualisiert die Zuordnung von QIDI-Materialnummern zu Materialnamen,
-- aktualisiert die Zuordnung von Herstellernummern zu Herstellernamen,
-- wird persistent im ESP32 gespeichert,
-- programmiert keinen RFID-Tag um und verändert keine Drucker-Firmware.
+- updates the mapping from QIDI material numbers to material names,
+- updates the mapping from manufacturer numbers to manufacturer names,
+- is stored persistently on the ESP32,
+- does not reprogram an RFID tag or modify printer firmware.
 
-Über **Reset QIDI config** werden hochgeladene Zuordnungen entfernt und die
-eingebauten Standardwerte wieder verwendet.
+Use **Reset QIDI config** to remove uploaded mappings and return to the
+built-in defaults.
 
 ## Dashboard
 
-Das Dashboard zeigt den Betriebszustand des Readers und die zuletzt vom
-Drucker bestätigten Filamentdaten.
+The dashboard displays reader operation and the most recently confirmed
+filament data from the printer.
 
-| Bereich | Angezeigte Informationen |
+| Area | Information Shown |
 | --- | --- |
-| Statusleiste | WLAN-Verbindung, Drucker-Erreichbarkeit und Tag-Status |
-| Printer Tool Head | Zugeordneter Kanal, Hersteller, Materialtyp, Subtyp, Farbe, Hotend-Temperaturen, Bett-Temperatur, Filament-Sensor und Official-Status, soweit vom Drucker geliefert |
-| Tag Reader | Letzter gültiger Tag, UID, Quelle (`OpenSpool` oder `QIDI`), gelesener Hersteller, Material, Farbe und Temperaturwerte |
-| Set/Webhook-Ergebnis | Ob die Übergabe der Tagdaten an den Drucker erfolgreich war, HTTP-Status und zuletzt gesendete Daten |
-| Network | SSID, IP-Adresse, Hostname, Signalstärke, Druckerziel und Firmware-Version |
-| Weitere Reader | Schnellzugriff auf konfigurierte zusätzliche Reader-Dashboards |
+| Status bar | Wi-Fi connection, printer reachability, and tag status |
+| Printer Tool Head | Assigned channel, manufacturer, material type, subtype, color, hotend temperatures, bed temperature, filament sensor, and official status when supplied by the printer |
+| Tag Reader | Last valid tag, UID, source (`OpenSpool` or `QIDI`), read manufacturer, material, color, and temperature values |
+| Set/Webhook result | Whether tag data was successfully transferred to the printer, HTTP status, and last sent data |
+| Network | SSID, IP address, hostname, signal strength, printer target, and firmware version |
+| Additional Readers | Quick access to configured additional reader dashboards |
 
-Ein Tag wird nur dann an den Drucker übertragen, wenn gültige Daten gelesen
-wurden und die Aktualisierung für den zugeordneten Kanal erforderlich ist.
+A tag is sent to the printer only after valid data has been read and an update
+is required for the assigned channel.
 
-## Normaler Betrieb
+## Normal Operation
 
-1. Starten Sie Drucker und Reader im selben 2,4-GHz-WLAN.
-2. Öffnen Sie das Dashboard über den konfigurierten Hostnamen oder die
-   angezeigte IP-Adresse.
-3. Legen Sie eine Spule mit OpenSpool- oder QIDI-Tag an den PN532-Leser.
-4. Kontrollieren Sie im Dashboard, ob Tagdaten und Printer Tool Head
-   übereinstimmen.
+1. Start the printer and reader on the same 2.4 GHz Wi-Fi network.
+2. Open the dashboard using the configured hostname or displayed IP address.
+3. Place an OpenSpool or QIDI tag at the PN532 reader.
+4. Check that the Tag Reader data and Printer Tool Head data match.
 
-Bei Verbindungsproblemen prüfen Sie zuerst das 2,4-GHz-WLAN, die Drucker-IP
-oder den mDNS-Namen, Port `7125` sowie die Druckereinstellung
+For connection problems, first verify the 2.4 GHz Wi-Fi network, printer IP or
+mDNS name, port `7125`, and the printer setting
 **Filament Detection: External**.
 
-## Referenz
+## Reference
 
-- [Espressif ESP32-C3 Produktübersicht](https://www.espressif.com/en/products/socs/esp32-c3)
+- [Espressif ESP32-C3 product overview](https://www.espressif.com/en/products/socs/esp32-c3)
