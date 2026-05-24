@@ -1,168 +1,167 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-Dieser Guide beschreibt die ESP32-S3-N16R8-Version `V1.0` des U1 Argus
-Remote RFID Readers. Ein Gerät steuert zwei PN532-Leser für die linke und die
-rechte Spulenposition und überträgt erkannte Daten an die zugeordneten
-Tool Heads des Snapmaker U1.
+This guide describes the ESP32-S3 N16R8 `V1.0` version of the U1 Argus Remote
+RFID reader. One controller operates two PN532 readers for the left and right
+spool positions and sends detected data to their assigned Snapmaker U1 Tool
+Heads.
 
-## Voraussetzungen
+## Requirements
 
-- ESP32-S3 N16R8 mit zwei PN532-Modulen in HSU/UART-Modus
-- Installierte ESP32-S3-Firmware `V1.0`
-- Snapmaker U1 mit Extended Firmware
-- In der Drucker-Firmware ist **Filament Detection** auf **External** gesetzt
-- Ein WLAN mit **2,4 GHz**
+- ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
+- Installed ESP32-S3 firmware `V1.0`
+- Snapmaker U1 with Extended Firmware
+- **Filament Detection** set to **External** in the printer firmware settings
+- A **2.4 GHz** Wi-Fi network
 
-Der ESP32-S3 unterstützt WLAN nach `802.11 b/g/n` im 2,4-GHz-Band. Er kann
-sich nicht mit einem reinen 5-GHz-WLAN verbinden. Das gilt auch dann, wenn
-andere Geräte am selben Standort vorzugsweise 5 GHz verwenden.
+The ESP32-S3 supports `802.11 b/g/n` Wi-Fi in the 2.4 GHz band. It cannot
+connect to a 5 GHz-only network, even when other nearby devices preferentially
+use 5 GHz.
 
-## Was Die S3-Version Anders Macht
+## What The S3 Version Does Differently
 
-Die S3-Ausgabe führt zwei lokale Reader in einem Controller zusammen:
+The S3 release combines two local readers in one controller:
 
-- **Left spool** und **Right spool** besitzen jeweils einen eigenen PN532 und
-  eine eigene Tool-Head-Zuordnung.
-- Ein FreeRTOS-Task auf Core 0 bedient die NFC-Leser.
-- Die Arduino-Hauptschleife auf Core 1 bedient Webinterface, WLAN und
-  Kommunikation mit dem Drucker.
-- Die geprüfte schnelle PN532-HSU-Leseroutine unterstützt OpenSpool/NTAG und
-  QIDI/MIFARE-Classic-Tags.
+- **Left spool** and **Right spool** each have their own PN532 module and
+  Tool Head assignment.
+- A FreeRTOS task on Core 0 services the NFC readers.
+- The Arduino main loop on Core 1 services the web interface, Wi-Fi, and
+  printer communication.
+- The validated fast PN532 HSU read path supports OpenSpool/NTAG and
+  QIDI/MIFARE Classic tags.
 
-Dadurch wird blockierendes NFC-Polling von der Web- und Netzwerkverarbeitung
-getrennt. `V1.0` basiert funktional auf dem hardwaregetesteten
-Entwicklungsstand `V0.27`.
+This separation keeps blocking NFC polling away from web and network
+processing. `V1.0` is functionally based on the hardware-tested `V0.27`
+development baseline.
 
-## Erste Einrichtung
+## First Setup
 
-Beim ersten Start oder nach dem Löschen der Einstellungen öffnet das Gerät:
+On first boot, or after stored settings have been cleared, the device opens:
 
 - SSID: `U1-Argus-Setup-XXXX`
-- Konfigurationsseite: `http://192.168.4.1`
+- Configuration page: `http://192.168.4.1`
 
-Verbinden Sie Smartphone oder Computer mit dem Hotspot. Öffnen Sie die
-Adresse manuell, falls das Captive Portal nicht automatisch angezeigt wird.
+Connect a phone or computer to the hotspot. If the captive portal does not
+open automatically, open the configuration address manually.
 
-## Setup-Webinterface
+## Setup Web Interface
 
-| Einstellung | Bedeutung |
+| Setting | Purpose |
 | --- | --- |
-| Wi-Fi SSID / Password | Zugang zum 2,4-GHz-WLAN mit dem Snapmaker U1 |
-| Preferred BSSID 1 / 2 | Optionale Priorisierung bestimmter 2,4-GHz-Access-Points derselben SSID |
-| Hostname | Lokaler Name des Readers, beispielsweise `argus-dual`; erreichbar als `http://argus-dual.local` |
-| Printer IP / Hostname | IP-Adresse oder mDNS-Hostname des Snapmaker U1 |
-| Printer Port | API-Port; standardmäßig `7125` |
-| Left spool Tool Head | Druckerkanal für den linken lokalen PN532 |
-| Right spool Tool Head | Druckerkanal für den rechten lokalen PN532 |
-| Additional dual reader | Optionaler Link zu einem weiteren Zwei-Spulen-Reader mit dessen linken/rechten Tool Heads |
-| Serial debug log | Zusätzliche Diagnoseausgaben; kann das Erkennen von Tags verlangsamen und ist standardmäßig aus |
-| QIDI config upload / reset | Aktualisiert oder entfernt benutzerdefinierte QIDI-Material- und Herstellerzuordnungen |
+| Wi-Fi SSID / Password | Access to the 2.4 GHz Wi-Fi network with the Snapmaker U1 |
+| Preferred BSSID 1 / 2 | Optional priority for particular 2.4 GHz access points broadcasting the same SSID |
+| Hostname | Local reader name, for example `argus-dual`; accessible as `http://argus-dual.local` |
+| Printer IP / Hostname | IP address or mDNS hostname of the Snapmaker U1 |
+| Printer Port | API port; default is `7125` |
+| Left spool Tool Head | Printer channel for the local left PN532 |
+| Right spool Tool Head | Printer channel for the local right PN532 |
+| Additional dual reader | Optional link to another two-spool reader with its left/right Tool Heads |
+| Serial debug log | Additional diagnostic output; it can slow tag detection and is disabled by default |
+| QIDI config upload / reset | Updates or removes custom QIDI material and manufacturer mappings |
 
-Auch bei ausgeschaltetem Debug bleiben wichtige serielle Basisinformationen
-wie Setup-Hotspot, WLAN-Status, eine Tag-Erkennung und der Status der
-Druckerübertragung verfügbar.
+With debug disabled, essential serial information remains available, including
+the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
+status.
 
-## BSSID-Präferenz
+## Preferred BSSIDs
 
-Eine **BSSID** ist die MAC-Adresse einer bestimmten WLAN-Funkzelle, zum
-Beispiel `AA:BB:CC:DD:EE:FF`. Sie ist nützlich, wenn mehrere Access Points
-oder Mesh-Knoten dieselbe SSID ausstrahlen und der Reader bevorzugt den
-nahen oder stabilen 2,4-GHz-Access-Point verwenden soll.
+A **BSSID** is the MAC address of a specific Wi-Fi radio, for example
+`AA:BB:CC:DD:EE:FF`. This is useful when several access points or mesh nodes
+broadcast the same SSID and the reader should prefer a nearby or stable
+2.4 GHz access point.
 
-Sind BSSIDs eingetragen, arbeitet die Firmware in dieser Reihenfolge:
+When BSSIDs are configured, the firmware connects in this order:
 
-1. Sie sucht die sichtbaren WLANs nach der konfigurierten SSID und BSSID 1.
-2. Falls BSSID 1 nicht sichtbar ist, wird BSSID 2 versucht.
-3. Nur wenn keiner der bevorzugten Access Points sichtbar ist, wird ein
-   anderer sichtbarer Access Point derselben SSID verwendet.
+1. It scans visible networks for the configured SSID and BSSID 1.
+2. If BSSID 1 is not visible, it tries BSSID 2.
+3. Only when neither preferred access point is visible does it use another
+   visible access point with the same SSID.
 
-Tragen Sie ausschließlich die BSSID des **2,4-GHz**-Netzes ein. Eine BSSID
-der 5-GHz-Funkzelle kann der ESP32-S3 nicht verwenden.
+Enter only the BSSID of a **2.4 GHz** network. The ESP32-S3 cannot use the
+BSSID of a 5 GHz radio.
 
-### Verfügbare BSSIDs Unter Windows Anzeigen
+### List Available BSSIDs On Windows
 
-Öffnen Sie PowerShell oder die Eingabeaufforderung:
+Open PowerShell or Command Prompt:
 
 ```powershell
 netsh wlan show networks mode=bssid
 ```
 
-Eine kompaktere PowerShell-Ansicht:
+For a shorter PowerShell view:
 
 ```powershell
 netsh wlan show networks mode=bssid | Select-String 'SSID|BSSID|Signal|Channel'
 ```
 
-Suchen Sie Ihre SSID und verwenden Sie die BSSID eines 2,4-GHz-Kanals. In der
-Regel liegen 2,4-GHz-Kanäle zwischen `1` und `13`.
+Find your SSID and select the BSSID of a 2.4 GHz channel. In most regions,
+2.4 GHz Wi-Fi channels are numbered from `1` through `13`.
 
-### Verfügbare BSSIDs Unter macOS Anzeigen
+### List Available BSSIDs On macOS
 
-Auf macOS-Versionen, die das ältere `airport`-Systemwerkzeug noch enthalten,
-kann ein Scan im Terminal ausgeführt werden:
+On macOS versions that still include the older `airport` system utility, run
+a scan in Terminal:
 
 ```sh
 /System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s
 ```
 
-Apple liefert dieses private Werkzeug nicht auf allen neueren Versionen
-weiter aus. Falls der Befehl fehlt, öffnen Sie **Wireless Diagnostics** und
-wählen **Window > Scan**, oder zeigen Sie mit gedrückter `Option`-Taste beim
-Klick auf das WLAN-Symbol die BSSID der aktuell verbundenen Funkzelle an.
+Apple does not include this private utility on every newer macOS version. If
+the command is unavailable, open **Wireless Diagnostics** and select
+**Window > Scan**, or hold `Option` while clicking the Wi-Fi icon to view the
+BSSID of the currently connected access point.
 
-## Unterstützte Tags
+## Supported Tags
 
-- **OpenSpool / NTAG**: Liest OpenSpool-NDEF-Inhalte über den jeweiligen
-  Reader und überträgt die Materialdaten an dessen Tool Head.
-- **QIDI / MIFARE Classic**: Authentifiziert und liest den QIDI-Datenblock,
-  übersetzt Material-, Hersteller- und Farbcodes und aktualisiert den
-  betreffenden Kanal.
+- **OpenSpool / NTAG**: Reads OpenSpool NDEF content through the respective
+  reader and transfers material data to its Tool Head.
+- **QIDI / MIFARE Classic**: Authenticates and reads the QIDI data block,
+  maps material, manufacturer, and color codes, and updates the relevant
+  channel.
 
 ## QIDI `officiall_filas_list.cfg`
 
-Die Firmware enthält kompakte Standardzuordnungen für gebräuchliche
-QIDI-Plus4-Materialien. Über das Setup kann optional die QIDI-Datei
-`officiall_filas_list.cfg` hochgeladen werden. Die Schreibweise mit doppeltem
-`l` ist der von der Firmware erwartete Dateiname.
+The firmware includes compact default mappings for common QIDI Plus4
+materials. The optional QIDI file `officiall_filas_list.cfg` can be uploaded
+in Setup. The double `l` spelling is the filename expected by the firmware.
 
-Der Upload aktualisiert persistent:
+The upload persistently updates:
 
-- Materialnummern und deren angezeigte Materialnamen,
-- Herstellernummern und deren angezeigte Herstellernamen.
+- material numbers and their displayed material names,
+- manufacturer numbers and their displayed manufacturer names.
 
-Er überschreibt keine RFID-Tags und installiert nichts auf dem Drucker. Ein
-Reset der QIDI-Konfiguration entfernt die hochgeladenen Zuordnungen und
-aktiviert wieder die eingebauten Standardwerte.
+It does not overwrite RFID tags or install anything on the printer. Resetting
+the QIDI configuration removes uploaded mappings and activates the built-in
+defaults again.
 
 ## Dashboard
 
-Das S3-Dashboard zeigt beide lokalen Spulenpositionen getrennt an.
+The S3 dashboard displays both local spool positions separately.
 
-| Bereich | Angezeigte Informationen |
+| Area | Information Shown |
 | --- | --- |
-| Statusleiste | WLAN-Verbindung, Drucker-Erreichbarkeit und aktueller Tag-Status |
-| Left/Right Printer Tool Head | Zugewiesener Kanal sowie vom Drucker bestätigte Hersteller-, Material-, Farb-, Temperatur-, Sensor- und Official-Daten |
-| Left/Right Tag Reader | Zuletzt gelesene UID, Tagquelle (`OpenSpool` oder `QIDI`), Hersteller, Material, Farbe und Temperaturwerte der jeweiligen Spule |
-| Set-Ergebnis | Ergebnis der letzten Aktualisierung des jeweiligen Druckerkanals einschließlich HTTP-Status |
-| Network | SSID, IP-Adresse, Hostname, Signalstärke, Druckerport und Firmware-Version; die verbundene BSSID wird seriell beim WLAN-Verbindungsaufbau ausgegeben |
-| Additional Reader | Schnellzugriff auf ein optional konfiguriertes weiteres Zwei-Spulen-Dashboard |
+| Status bar | Wi-Fi connection, printer reachability, and current tag status |
+| Left/Right Printer Tool Head | Assigned channel and printer-confirmed manufacturer, material, color, temperature, sensor, and official data |
+| Left/Right Tag Reader | Most recently read UID, tag source (`OpenSpool` or `QIDI`), manufacturer, material, color, and temperature values for each spool |
+| Set result | Result of the last update to the relevant printer channel, including HTTP status |
+| Network | SSID, IP address, hostname, signal strength, printer port, and firmware version; the connected BSSID is printed serially when Wi-Fi connects |
+| Additional Reader | Quick access to an optional additional two-spool dashboard |
 
-## Normaler Betrieb
+## Normal Operation
 
-1. Starten Sie Drucker und Reader im selben 2,4-GHz-WLAN.
-2. Öffnen Sie das Dashboard über Hostname oder IP-Adresse.
-3. Legen Sie eine Spule links oder rechts auf; die Daten werden für den
-   zugewiesenen Tool Head gelesen und bei Bedarf an den Drucker gesendet.
-4. Nutzen Sie Debug-Logging nur zur Fehlersuche und deaktivieren Sie es für
-   die schnellste reguläre Tag-Erkennung.
+1. Start the printer and reader on the same 2.4 GHz Wi-Fi network.
+2. Open the dashboard using its hostname or IP address.
+3. Place a spool on the left or right reader; its data is read for the
+   assigned Tool Head and sent to the printer when required.
+4. Enable debug logging only for troubleshooting and disable it for the
+   fastest normal tag detection.
 
-Bei Verbindungsproblemen prüfen Sie zuerst, ob eine eingetragene bevorzugte
-BSSID tatsächlich zu Ihrer 2,4-GHz-SSID gehört und am Aufstellort sichtbar
-ist. Prüfen Sie anschließend Drucker-Adresse, Port `7125` und
+For connection problems, first verify that a configured preferred BSSID
+belongs to your 2.4 GHz SSID and is visible at the installation location.
+Then check the printer address, port `7125`, and
 **Filament Detection: External**.
 
-## Referenzen
+## References
 
-- [Espressif ESP32-S3 Produktübersicht](https://www.espressif.com/en/products/socs/esp32-s3/)
-- [Espressif ESP32-Chip-Vergleich mit WLAN-Band und CPU-Daten](https://docs.espressif.com/projects/esp-idf/en/v5.0.3/esp32c3/hw-reference/chip-series-comparison.html)
-- [Microsoft Dokumentation zu `netsh wlan`](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-wlan)
+- [Espressif ESP32-S3 product overview](https://www.espressif.com/en/products/socs/esp32-s3/)
+- [Espressif ESP32 chip comparison with Wi-Fi band and CPU information](https://docs.espressif.com/projects/esp-idf/en/v5.0.3/esp32c3/hw-reference/chip-series-comparison.html)
+- [Microsoft documentation for `netsh wlan`](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-wlan)
