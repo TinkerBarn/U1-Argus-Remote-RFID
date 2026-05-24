@@ -127,10 +127,18 @@ Important note:
 
 ### ESP32-S3 Dual-Reader Bill Of Materials
 
-- **ESP32-S3 N16R8** board
+- **ESP32-S3 N16R8** board, preferably supplied with a screw-terminal expansion board for easier and more secure PN532 wiring
 - **2 x PN532 NFC/RFID modules**
 - Hookup wires for power and two independent HSU/UART connections
 - **USB cable** for flashing and later power
+
+The reference S3 build uses the N16R8 board with a screw-terminal expansion
+board. It makes the two PN532 UART connections easier to assemble and more
+robust during normal handling. The expansion board is a wiring convenience,
+not a firmware requirement; a compatible ESP32-S3 N16R8 board can also be
+wired directly.
+
+Purchase example: [ESP32-S3 N16R8 with screw-terminal expansion board on Amazon.de](https://www.amazon.de/dp/B0FKBLR2KF)
 
 After the controller has been programmed, only a **USB cable for power** is needed.
 
