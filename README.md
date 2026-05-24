@@ -168,6 +168,12 @@ The firmware release `V2.0` uses:
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
 
+### ESP32-S3 Dual-Reader Schematic
+
+<p align="center">
+  <img src="./assets/hardware/esp32-s3-dual-reader-pinout.png" alt="ESP32-S3 N16R8 to two PN532 readers wiring in HSU mode" width="900">
+</p>
+
 ### ESP32-S3 Dual-Reader Pinout List
 
 | ESP32-S3 N16R8 | PN532 board pin | Reader | Note |
