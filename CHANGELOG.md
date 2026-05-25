@@ -2,6 +2,25 @@
 
 All public release changes are tracked here.
 
+## ESP32-S3 Dual-Reader V1.1
+
+- Shows the currently connected BSSID in the dashboard Network tile
+- Adds a cached list of visible 2.4 GHz BSSIDs for the configured SSID,
+  including RSSI and channel, to the dashboard and standard serial output
+- Refreshes Wi-Fi visibility outside the NFC task and defers scans while a tag
+  is active, preserving the confirmed fast OpenSpool and QIDI read path
+- Fixes persistence of the optional additional dual-reader Tool Head
+  assignments by using ESP32 Preferences keys within the NVS length limit
+- Retains the V1.0 dual PN532 HSU reader architecture and Core 0/Core 1
+  FreeRTOS split
+- Documents the tested `4MB (32Mb)` flash and `Huge APP (3MB No OTA/1MB
+  SPIFFS)` Arduino IDE selections for the S3 board
+
+Source and binary:
+
+- [source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino](./source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino)
+- [firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin](./firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin)
+
 ## ESP32-C3 Single-Reader V2.1
 
 - Adds optional configuration of two preferred Wi-Fi BSSIDs for setups with multiple routers, repeaters, or mesh access points broadcasting one SSID

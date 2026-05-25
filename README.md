@@ -41,7 +41,7 @@
   - last valid tag information
   - last webhook result
   - quick buttons to jump between up to **4 readers**
-- Provide optional preferred Wi-Fi BSSIDs on current C3 and S3 releases for installations with multiple access points or repeaters
+- Provide optional preferred Wi-Fi BSSIDs on current C3 and S3 releases for installations with multiple access points or repeaters; ESP32-S3 V1.1 also reports visible same-SSID BSSIDs with RSSI
 - Provide a dual-reader ESP32-S3 firmware with a dedicated NFC polling task
 - Keep the ESP32-C3 device UI compact and English-only because its release build is close to its available application space
 - Keep current documentation and the web installer in English
@@ -59,7 +59,7 @@ There are two supported hardware approaches:
 
 Both ESP32-C3 and ESP32-S3 provide 2.4 GHz `802.11 b/g/n` Wi-Fi according to Espressif. The S3 advantage in this project is not a claim of a different Wi-Fi standard: it is the substantially stronger application platform around the network traffic. The ESP32-C3 is a single-core RISC-V MCU up to 160 MHz with 400 KB SRAM. The ESP32-S3 is a dual-core Xtensa LX7 MCU up to 240 MHz with 512 KB internal SRAM and support for larger external flash and PSRAM.
 
-The **ESP32-S3 N16R8** build used here provides 16 MB flash and 8 MB PSRAM at board level. That gives a practical path for larger dashboards and future functions, although builds must use a suitable flash partition layout to expose extra application space. By contrast, the current feature-rich ESP32-C3 release was already deliberately kept compact to remain within its application partition.
+The **ESP32-S3 N16R8** board variant used here is sold as providing 16 MB flash and 8 MB PSRAM. On the tested expansion-board unit, the ROM boot log reported only a 4 MB accessible flash window. The public firmware therefore uses the boot-compatible `4MB (32Mb)` plus `Huge APP (3MB No OTA/1MB SPIFFS)` selections. The `16M Flash (3MB APP/9.9MB FATFS)` partition selection caused a boot-loop partition validation failure on that tested hardware. The S3 still provides substantially more runtime capacity for future functionality than the compact ESP32-C3 release line.
 
 ### ESP32-S3 Runtime Split
 
@@ -88,6 +88,7 @@ Hardware-specific release tags avoid ambiguity between versions:
 - `esp32-c3-v2.0` marks the C3 maintenance baseline.
 - `esp32-c3-v2.1` marks the C3 release with preferred BSSID selection and connected-BSSID dashboard display.
 - `esp32-s3-v1.0` marks the first S3 release and the starting point for the active development line.
+- `esp32-s3-v1.1` marks the S3 release with BSSID/RSSI visibility and persisted additional-reader Tool Head assignments.
 
 Public releases are organized consistently by controller:
 
@@ -207,7 +208,7 @@ Available selections:
 | Hardware variant | Releases in installer | Default selection |
 | --- | --- | --- |
 | ESP32-C3 single-reader | `V2.1`, `V2.0`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V2.1` |
-| ESP32-S3 dual-reader | `V1.0` | `V1.0` |
+| ESP32-S3 dual-reader | `V1.1`, `V1.0` | `V1.1` |
 
 Release lists are ordered newest first; the latest available release for each hardware variant is selected when the page opens.
 
@@ -255,11 +256,11 @@ ESP32-C3 single-reader merged binary:
 
 ESP32-S3 dual-reader source:
 
-- [source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino](./source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino)
+- [source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino](./source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino)
 
 ESP32-S3 dual-reader merged binary:
 
-- [firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin](./firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin)
+- [firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin](./firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin)
 
 The ESP32-S3 release can be installed through the web installer, manually flashed from the merged binary, or built from Arduino source.
 
@@ -283,6 +284,27 @@ Target board for the ESP32-S3 dual-reader build:
 
 - **Adafruit PN532**
 - **ArduinoJson**
+
+#### ESP32-S3 Arduino IDE Settings
+
+For the tested ESP32-S3 dual-reader board, select:
+
+| Arduino IDE option | Value |
+| --- | --- |
+| Board | `ESP32S3 Dev Module` |
+| CPU Frequency | `240MHz (WiFi)` |
+| Flash Mode | `QIO 80MHz` |
+| Flash Size | `4MB (32Mb)` |
+| Partition Scheme | `Huge APP (3MB No OTA/1MB SPIFFS)` |
+| PSRAM | `OPI PSRAM` |
+| Arduino Runs On / Events Run On | `Core 1` / `Core 1` |
+| USB CDC On Boot | `Enabled` |
+| USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
+
+Although the module is sold as N16R8, the tested screw-terminal expansion-board
+unit reported a 4 MB accessible flash window at boot. Do not choose `16M Flash
+(3MB APP/9.9MB FATFS)` for this tested S3 setup; this selection caused a
+repeated boot failure because the partition table was rejected at startup.
 
 #### Recommended First-Flash Option
 
@@ -320,7 +342,7 @@ FQBN=esp32:esp32:nologo_esp32c3_super_mini tools/compile-firmware.sh
 Build the ESP32-S3 dual-reader source with:
 
 ```sh
-FQBN=esp32:esp32:esp32s3 tools/compile-firmware.sh source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino
+FQBN='esp32:esp32:esp32s3:FlashSize=4M,PartitionScheme=huge_app,PSRAM=opi,FlashMode=qio,CPUFreq=240,LoopCore=1,EventsCore=1,USBMode=hwcdc,CDCOnBoot=cdc,UploadMode=default' tools/compile-firmware.sh source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino
 ```
 
 On Apple Silicon Macs, Arduino's bundled `ctags` tool may still be an Intel
@@ -371,7 +393,7 @@ Then configure the reader like this:
 
 1. Enter the SSID of your home Wi-Fi
 2. Enter the Wi-Fi password
-3. On ESP32-C3 `V2.1` or ESP32-S3 `V1.0`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
+3. On ESP32-C3 `V2.1` or ESP32-S3 `V1.1`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
 4. Enter the IP address or mDNS hostname of your Snapmaker U1
 5. Keep port `7125` unless you intentionally use a different port
 6. Enter an mDNS name
@@ -395,10 +417,15 @@ routers, repeaters, or mesh nodes broadcast the same SSID. Without a preferred
 BSSID, the ESP32 may join a more distant node; with one or two preferred
 BSSIDs, it can prioritize the nearby 2.4 GHz radios at the printer location.
 
-ESP32-C3 `V2.1` and ESP32-S3 `V1.0` try configured, visible BSSIDs in order.
+ESP32-C3 `V2.1` and ESP32-S3 `V1.1` try configured, visible BSSIDs in order.
 Only when neither preferred BSSID is visible do they connect to another access
 point broadcasting the configured SSID. Enter a BSSID for a **2.4 GHz** radio;
 neither ESP32 hardware variant connects to 5 GHz Wi-Fi.
+
+ESP32-S3 `V1.1` additionally lists visible BSSIDs for the configured SSID with
+their RSSI values in the dashboard Network tile and in essential serial status
+output. For RSSI, a value closer to zero is better, for example `-55 dBm`
+indicates a stronger signal than `-83 dBm`.
 
 On Windows, list access points and their BSSIDs in PowerShell or Command
 Prompt:
@@ -474,9 +501,10 @@ Source and binary:
 
 ---
 
-## ESP32-S3 Dual-Reader V1.0
+## ESP32-S3 Dual-Reader V1.1
 
-`V1.0` is the first public ESP32-S3 N16R8 dual-reader release. It is built from the hardware-tested `V0.27` development baseline, which remains in the local `dev/` workflow rather than becoming a public release number.
+`V1.1` is the current public ESP32-S3 N16R8 dual-reader release. It is built
+from the hardware-tested `V0.29` development baseline.
 
 Highlights:
 
@@ -484,12 +512,14 @@ Highlights:
 - Reads both OpenSpool/NTAG and QIDI/MIFARE Classic tags quickly with the validated raw PN532 HSU path
 - Runs NFC polling in a FreeRTOS task pinned to Core 0 while the web interface and printer network workflow remain on the Arduino main loop on Core 1
 - Adds optional preference for up to two Wi-Fi BSSIDs, with fallback to another access point of the configured SSID only when neither preferred BSSID is visible
+- Shows the connected BSSID plus visible BSSIDs for that SSID with RSSI and channel in the Network tile and serial status output
+- Fixes persistence of optional additional dual-reader Tool Head assignments after saving and rebooting
 - Provides additional hardware capacity on an ESP32-S3 N16R8 board for future feature work
 
 Source and binary:
 
-- [source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino](./source/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino)
-- [firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin](./firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin)
+- [source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino](./source/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino)
+- [firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin](./firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin)
 
 The browser web installer provides separate ESP32-C3 and ESP32-S3 install targets so the correct chip-specific binary can be selected before flashing.
 

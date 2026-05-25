@@ -133,12 +133,32 @@ filament data from the printer.
 A tag is sent to the printer only after valid data has been read and an update
 is required for the assigned channel.
 
+## Initial Setup
+
+1. Start the reader and connect to its `U1-Argus-Setup-XXXX` hotspot.
+2. Open the captive portal, or manually open `http://192.168.4.1`.
+3. Configure Wi-Fi, printer address, Tool Head, and optional preferred BSSIDs
+   or additional reader dashboard links.
+4. Save the configuration and let the reader reboot.
+
 ## Normal Operation
 
-1. Start the printer and reader on the same 2.4 GHz Wi-Fi network.
-2. Open the dashboard using the configured hostname or displayed IP address.
-3. Place an OpenSpool or QIDI tag at the PN532 reader.
-4. Check that the Tag Reader data and Printer Tool Head data match.
+1. Start the printer and the configured reader.
+2. Load a filament spool with an attached OpenSpool or QIDI tag into the
+   dryer/reader position.
+3. The reader detects the tag automatically and transfers the filament
+   information to the assigned printer Tool Head when required.
+
+Once configured, there is normally nothing else to operate: load filament and
+print.
+
+## Changing Settings Or Viewing Details
+
+Open the configured reader URL, for example `http://argus-left.local`, or its
+displayed IP address only when you want to view dashboard details or change
+setup values.
+
+## Troubleshooting
 
 For connection problems, first verify the 2.4 GHz Wi-Fi network and that any
 preferred BSSID belongs to the configured SSID and is visible nearby. Then

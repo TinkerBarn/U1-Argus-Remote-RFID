@@ -1,6 +1,6 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-This guide describes the ESP32-S3 N16R8 `V1.0` version of the U1 Argus Remote
+This guide describes the ESP32-S3 N16R8 `V1.1` version of the U1 Argus Remote
 RFID reader. One controller operates two PN532 readers for the left and right
 spool positions and sends detected data to their assigned Snapmaker U1 Tool
 Heads.
@@ -8,7 +8,7 @@ Heads.
 ## Requirements
 
 - ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
-- Installed ESP32-S3 firmware `V1.0`
+- Installed ESP32-S3 firmware `V1.1`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -30,7 +30,7 @@ The S3 release combines two local readers in one controller:
   QIDI/MIFARE Classic tags.
 
 This separation keeps blocking NFC polling away from web and network
-processing. `V1.0` is functionally based on the hardware-tested `V0.27`
+processing. `V1.1` is functionally based on the hardware-tested `V0.29`
 development baseline.
 
 ## First Setup
@@ -60,7 +60,8 @@ open automatically, open the configuration address manually.
 
 With debug disabled, essential serial information remains available, including
 the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
-status.
+status. `V1.1` additionally reports visible 2.4 GHz BSSIDs for the configured
+SSID with their RSSI values when the list is initially scanned or changes.
 
 ## Preferred BSSIDs
 
@@ -143,17 +144,59 @@ The S3 dashboard displays both local spool positions separately.
 | Left/Right Printer Tool Head | Assigned channel and printer-confirmed manufacturer, material, color, temperature, sensor, and official data |
 | Left/Right Tag Reader | Most recently read UID, tag source (`OpenSpool` or `QIDI`), manufacturer, material, color, and temperature values for each spool |
 | Set result | Result of the last update to the relevant printer channel, including HTTP status |
-| Network | SSID, IP address, hostname, signal strength, printer port, and firmware version; the connected BSSID is printed serially when Wi-Fi connects |
+| Network | SSID, IP address, hostname, signal strength, currently connected BSSID, firmware version, and visible 2.4 GHz BSSIDs for the configured SSID with RSSI and channel |
 | Additional Reader | Quick access to an optional additional two-spool dashboard |
+
+## Initial Setup
+
+1. Start the reader and connect to its `U1-Argus-Setup-XXXX` hotspot.
+2. Open the captive portal, or manually open `http://192.168.4.1`.
+3. Configure Wi-Fi, printer address, left/right Tool Heads, and optional
+   preferred BSSIDs or additional reader dashboard.
+4. Save the configuration and let the reader reboot.
 
 ## Normal Operation
 
-1. Start the printer and reader on the same 2.4 GHz Wi-Fi network.
-2. Open the dashboard using its hostname or IP address.
-3. Place a spool on the left or right reader; its data is read for the
-   assigned Tool Head and sent to the printer when required.
-4. Enable debug logging only for troubleshooting and disable it for the
-   fastest normal tag detection.
+1. Start the printer and the configured reader.
+2. Load a filament spool with an attached OpenSpool or QIDI tag into the
+   left or right dryer/reader position.
+3. The reader detects the tag automatically and transfers the filament
+   information to the assigned printer Tool Head when required.
+
+Once configured, there is normally nothing else to operate: load filament and
+print.
+
+## Changing Settings Or Viewing Details
+
+Open the configured reader URL, for example `http://argus-dual.local`, or its
+displayed IP address only when you want to view dashboard details or change
+setup values. Keep debug logging disabled for normal use and enable it only
+temporarily for troubleshooting.
+
+## Manual Arduino IDE Upload Settings
+
+For the tested ESP32-S3 dual-reader board, use:
+
+| Setting | Value |
+| --- | --- |
+| Board | `ESP32S3 Dev Module` |
+| CPU Frequency | `240MHz (WiFi)` |
+| Flash Mode | `QIO 80MHz` |
+| Flash Size | `4MB (32Mb)` |
+| Partition Scheme | `Huge APP (3MB No OTA/1MB SPIFFS)` |
+| PSRAM | `OPI PSRAM` |
+| Arduino Runs On / Events Run On | `Core 1` / `Core 1` |
+| USB CDC On Boot | `Enabled` |
+| USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
+
+Keep `Erase All Flash Before Sketch Upload` disabled for updates if existing
+settings should remain stored. Although the module is sold as N16R8, the
+tested screw-terminal expansion-board unit reported a 4 MB accessible flash
+window at boot. Do not select `16M Flash (3MB APP/9.9MB FATFS)` for this
+tested board configuration: it caused a boot-loop partition validation
+failure.
+
+## Troubleshooting
 
 For connection problems, first verify that a configured preferred BSSID
 belongs to your 2.4 GHz SSID and is visible at the installation location.
