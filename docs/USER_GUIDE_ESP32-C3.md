@@ -16,6 +16,14 @@ The ESP32-C3 supports `802.11 b/g/n` Wi-Fi in the 2.4 GHz band. It cannot
 connect to a 5 GHz-only network. If the router uses a shared network name for
 2.4 GHz and 5 GHz, an accessible 2.4 GHz network must still be available.
 
+## Printable Holder Options
+
+The MakerWorld model below includes **ESP32-C3 plus PN532 holders** that can
+be mounted on the SH02 base plate, as well as universal ESP32-C3 holder
+variants for custom reader installations:
+
+- [Dual RFID Reader for SH02 Dryer and Snapmaker U1](https://makerworld.com/en/models/2847054-dual-rfid-reader-for-sh02-dryer-and-snapmaker-u1#profileId-3175165)
+
 ## First Setup
 
 On first boot, or after stored settings have been cleared, the device opens a

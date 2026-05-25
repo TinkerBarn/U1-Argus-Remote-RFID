@@ -17,6 +17,17 @@ The ESP32-S3 supports `802.11 b/g/n` Wi-Fi in the 2.4 GHz band. It cannot
 connect to a 5 GHz-only network, even when other nearby devices preferentially
 use 5 GHz.
 
+## Printable SH02 Installation
+
+The MakerWorld model below provides a base plate optimized for one or two
+**Sovol / Comgrow SH02** filament dryers, with a front ESP32-S3 mounting
+position and two matching PN532 sensor holders:
+
+- [Dual RFID Reader for SH02 Dryer and Snapmaker U1](https://makerworld.com/en/models/2847054-dual-rfid-reader-for-sh02-dryer-and-snapmaker-u1#profileId-3175165)
+
+The same model also provides optional ESP32-C3 holder parts and universal
+ESP32-C3 holder variants for alternative installations.
+
 ## What The S3 Version Does Differently
 
 The S3 release combines two local readers in one controller:

@@ -57,6 +57,18 @@ There are two supported hardware approaches:
 | **ESP32-C3 Super Mini + 1 PN532** | 1 | Small, low-cost readers; deploy one controller per spool/reader position | Single-core firmware; Wi-Fi, dashboard, printer API, and NFC handling share one MCU core |
 | **ESP32-S3 N16R8 + 2 PN532** | 2 | One two-spool reader unit with more expansion room | Dual-core firmware; a FreeRTOS NFC task polls both PN532 readers while the Arduino main loop serves Wi-Fi, dashboard, and printer communication |
 
+### Printable SH02 Base And Reader Holders
+
+A printable mechanical installation for the **Sovol / Comgrow SH02 filament
+dryer** is available on MakerWorld:
+
+- [Dual RFID Reader for SH02 Dryer and Snapmaker U1](https://makerworld.com/en/models/2847054-dual-rfid-reader-for-sh02-dryer-and-snapmaker-u1#profileId-3175165)
+
+The design includes the SH02 base plate for the **ESP32-S3 dual-reader**
+version and its two PN532 sensor holders. It also includes optional
+**ESP32-C3 plus PN532 holders** that fit the same base plate, as well as
+universal ESP32-C3 holders for custom installations outside the SH02 base.
+
 Both ESP32-C3 and ESP32-S3 provide 2.4 GHz `802.11 b/g/n` Wi-Fi according to Espressif. The S3 advantage in this project is not a claim of a different Wi-Fi standard: it is the substantially stronger application platform around the network traffic. The ESP32-C3 is a single-core RISC-V MCU up to 160 MHz with 400 KB SRAM. The ESP32-S3 is a dual-core Xtensa LX7 MCU up to 240 MHz with 512 KB internal SRAM and support for larger external flash and PSRAM.
 
 The **ESP32-S3 N16R8** board variant used here is sold as providing 16 MB flash and 8 MB PSRAM. On the tested expansion-board unit, the ROM boot log reported only a 4 MB accessible flash window. The public firmware therefore uses the boot-compatible `4MB (32Mb)` plus `Huge APP (3MB No OTA/1MB SPIFFS)` selections. The `16M Flash (3MB APP/9.9MB FATFS)` partition selection caused a boot-loop partition validation failure on that tested hardware. The S3 still provides substantially more runtime capacity for future functionality than the compact ESP32-C3 release line.
