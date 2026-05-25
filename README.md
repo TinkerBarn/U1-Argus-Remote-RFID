@@ -41,7 +41,8 @@
   - last valid tag information
   - last webhook result
   - quick buttons to jump between up to **4 readers**
-- Provide a dual-reader ESP32-S3 firmware with optional preferred Wi-Fi BSSIDs and a dedicated NFC polling task
+- Provide optional preferred Wi-Fi BSSIDs on current C3 and S3 releases for installations with multiple access points or repeaters
+- Provide a dual-reader ESP32-S3 firmware with a dedicated NFC polling task
 - Keep the ESP32-C3 device UI compact and English-only because its release build is close to its available application space
 - Keep current documentation and the web installer in English
 
@@ -85,9 +86,13 @@ The ESP32-C3 firmware is already close to the practical flash headroom of this h
 Hardware-specific release tags avoid ambiguity between versions:
 
 - `esp32-c3-v2.0` marks the C3 maintenance baseline.
+- `esp32-c3-v2.1` marks the C3 release with preferred BSSID selection and connected-BSSID dashboard display.
 - `esp32-s3-v1.0` marks the first S3 release and the starting point for the active development line.
 
-The existing ESP32-C3 release paths under `source/<version>/` and `firmware/<version>/` remain valid for compatibility with existing installer links. New S3 releases are kept under `source/ESP32-S3/<version>/` and `firmware/ESP32-S3/<version>/`.
+Public releases are organized consistently by controller:
+
+- ESP32-C3: `source/ESP32-C3/<version>/` and `firmware/ESP32-C3/<version>/`
+- ESP32-S3: `source/ESP32-S3/<version>/` and `firmware/ESP32-S3/<version>/`
 
 ---
 
@@ -163,7 +168,7 @@ The communication between **U1 Argus Remote RFID** and the **Snapmaker U1** then
 | `GPIO3` | `SCL` | HSU TX line to PN532 board |
 | `GPIO4` | `SDA` | HSU RX line from PN532 board |
 
-The firmware release `V2.0` uses:
+The ESP32-C3 firmware releases `V2.0` and `V2.1` use:
 
 - `PN532_TX_PIN = 3`
 - `PN532_RX_PIN = 4`
@@ -201,7 +206,7 @@ Available selections:
 
 | Hardware variant | Releases in installer | Default selection |
 | --- | --- | --- |
-| ESP32-C3 single-reader | `V2.0`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V2.0` |
+| ESP32-C3 single-reader | `V2.1`, `V2.0`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V2.1` |
 | ESP32-S3 dual-reader | `V1.0` | `V1.0` |
 
 Release lists are ordered newest first; the latest available release for each hardware variant is selected when the page opens.
@@ -242,7 +247,11 @@ Then start the flash process again in the web installer.
 
 ESP32-C3 single-reader public release source:
 
-- [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
+- [source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino](./source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino)
+
+ESP32-C3 single-reader merged binary:
+
+- [firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin](./firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin)
 
 ESP32-S3 dual-reader source:
 
@@ -294,7 +303,7 @@ development on macOS:
 - `tools/install-arduino-deps.sh`
   Installs the ESP32 board package and the required Arduino libraries.
 - `tools/compile-firmware.sh`
-  Builds `source/V2.0/U1_Argus_Remote_RFID_V2.0.ino` by default.
+  Builds `source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino` by default.
 - `tools/upload-firmware.sh /dev/cu.<device>`
   Builds and uploads the default firmware to a connected ESP32-C3.
 
@@ -323,9 +332,9 @@ softwareupdate --install-rosetta --agree-to-license
 
 ### Repository Layout
 
-Public ESP32-C3 browser-installer firmware binaries are stored in `firmware/<version>/`.
+Public ESP32-C3 browser-installer firmware binaries are stored in `firmware/ESP32-C3/<version>/`.
 
-The matching ESP32-C3 Arduino source for each public release is stored in `source/<version>/`.
+The matching ESP32-C3 Arduino source for each public release is stored in `source/ESP32-C3/<version>/`.
 
 ESP32-S3 dual-reader source is stored in `source/ESP32-S3/<version>/`.
 
@@ -340,7 +349,7 @@ Local development iterations live in `dev/`, which is ignored by Git and not par
 - [ESP32-C3 Single-Reader User Guide](./docs/USER_GUIDE_ESP32-C3.md)
 - [ESP32-S3 Dual-Reader User Guide](./docs/USER_GUIDE_ESP32-S3.md)
 
-Both guides describe the dashboard, web setup, QIDI `officiall_filas_list.cfg` upload, and the supported 2.4 GHz Wi-Fi operation. The ESP32-S3 guide also covers preferred BSSIDs for installations with multiple access points.
+Both guides describe the dashboard, web setup, QIDI `officiall_filas_list.cfg` upload, supported 2.4 GHz Wi-Fi operation, and preferred BSSIDs for installations with multiple access points.
 
 ---
 
@@ -362,7 +371,7 @@ Then configure the reader like this:
 
 1. Enter the SSID of your home Wi-Fi
 2. Enter the Wi-Fi password
-3. On the ESP32-S3 build, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
+3. On ESP32-C3 `V2.1` or ESP32-S3 `V1.0`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
 4. Enter the IP address or mDNS hostname of your Snapmaker U1
 5. Keep port `7125` unless you intentionally use a different port
 6. Enter an mDNS name
@@ -377,6 +386,42 @@ After configuration, the dashboard can be opened with:
 - `http://example.local`
 
 Replace `example` with the hostname you entered in setup.
+
+### Preferred Wi-Fi BSSIDs
+
+A **BSSID** is the MAC address of one specific Wi-Fi access point or repeater
+radio, for example `AA:BB:CC:DD:EE:FF`. It becomes useful when several
+routers, repeaters, or mesh nodes broadcast the same SSID. Without a preferred
+BSSID, the ESP32 may join a more distant node; with one or two preferred
+BSSIDs, it can prioritize the nearby 2.4 GHz radios at the printer location.
+
+ESP32-C3 `V2.1` and ESP32-S3 `V1.0` try configured, visible BSSIDs in order.
+Only when neither preferred BSSID is visible do they connect to another access
+point broadcasting the configured SSID. Enter a BSSID for a **2.4 GHz** radio;
+neither ESP32 hardware variant connects to 5 GHz Wi-Fi.
+
+On Windows, list access points and their BSSIDs in PowerShell or Command
+Prompt:
+
+```powershell
+netsh wlan show networks mode=bssid
+```
+
+For a shorter PowerShell result:
+
+```powershell
+netsh wlan show networks mode=bssid | Select-String 'SSID|BSSID|Signal|Channel'
+```
+
+On macOS versions that provide Apple's `airport` utility, scan from Terminal:
+
+```sh
+/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s
+```
+
+If that command is unavailable on a newer macOS release, open **Wireless
+Diagnostics** and choose **Window > Scan**. Holding `Option` while clicking
+the Wi-Fi icon also shows the BSSID of the currently connected access point.
 
 ---
 
@@ -408,6 +453,27 @@ Replace `example` with the hostname you entered in setup.
 
 ---
 
+## ESP32-C3 Single-Reader V2.1
+
+`V2.1` is the current ESP32-C3 single-reader public release and web-installer
+default. It deliberately retains the `V2.0` PN532, OpenSpool, and QIDI tag
+read/write implementation.
+
+Highlights:
+
+- Adds optional preference for up to two Wi-Fi BSSIDs for networks with several routers, repeaters, or mesh access points broadcasting the same SSID
+- Tries nearby configured 2.4 GHz access points first and falls back to another access point of the SSID only when neither preferred BSSID is visible
+- Shows the currently connected BSSID in the dashboard Network tile
+- Mirrors standard serial status output to the ESP32-C3 USB-Serial/JTAG interface where required by the board profile
+- Uses `99%` of the standard ESP32-C3 application partition; future feature development targets ESP32-S3
+
+Source and binary:
+
+- [source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino](./source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino)
+- [firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin](./firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin)
+
+---
+
 ## ESP32-S3 Dual-Reader V1.0
 
 `V1.0` is the first public ESP32-S3 N16R8 dual-reader release. It is built from the hardware-tested `V0.27` development baseline, which remains in the local `dev/` workflow rather than becoming a public release number.
@@ -429,9 +495,9 @@ The browser web installer provides separate ESP32-C3 and ESP32-S3 install target
 
 ---
 
-## Release V2.0
+## ESP32-C3 Single-Reader V2.0
 
-`V2.0` is the current ESP32-C3 single-reader public release and web-installer target.
+`V2.0` is the previous ESP32-C3 single-reader public release.
 
 Highlights:
 
@@ -447,11 +513,11 @@ Highlights:
 
 Release source:
 
-- [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
+- [source/ESP32-C3/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/ESP32-C3/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
 
 Firmware folder:
 
-- [firmware/V2.0](./firmware/V2.0/)
+- [firmware/ESP32-C3/V2.0](./firmware/ESP32-C3/V2.0/)
 
 ---
 
@@ -470,11 +536,11 @@ Highlights:
 
 Release source:
 
-- [source/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
+- [source/ESP32-C3/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/ESP32-C3/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
 
 Firmware folder:
 
-- [firmware/V1.3](./firmware/V1.3/)
+- [firmware/ESP32-C3/V1.3](./firmware/ESP32-C3/V1.3/)
 
 ---
 
@@ -495,11 +561,11 @@ Highlights:
 
 Release source:
 
-- [source/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
+- [source/ESP32-C3/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/ESP32-C3/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
 
 Firmware folder:
 
-- [firmware/V1.2](./firmware/V1.2/)
+- [firmware/ESP32-C3/V1.2](./firmware/ESP32-C3/V1.2/)
 
 ---
 
@@ -521,11 +587,11 @@ Highlights:
 
 Release source:
 
-- [source/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
+- [source/ESP32-C3/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/ESP32-C3/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
 
 Firmware folder:
 
-- [firmware/V1.1](./firmware/V1.1/)
+- [firmware/ESP32-C3/V1.1](./firmware/ESP32-C3/V1.1/)
 
 ---
 
@@ -544,11 +610,11 @@ Highlights:
 
 Release source:
 
-- [source/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
+- [source/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
 
 Firmware folder:
 
-- [firmware/V1.0](./firmware/V1.0/)
+- [firmware/ESP32-C3/V1.0](./firmware/ESP32-C3/V1.0/)
 
 ---
 

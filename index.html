@@ -122,19 +122,21 @@
           <div class="release-picker">
             <label for="release-c3">Release version</label>
             <select id="release-c3" aria-label="ESP32-C3 release version">
-              <option value="V2.0" selected>V2.0 (latest)</option>
+              <option value="V2.1" selected>V2.1 (latest)</option>
+              <option value="V2.0">V2.0</option>
               <option value="V1.3">V1.3</option>
               <option value="V1.2">V1.2</option>
               <option value="V1.1">V1.1</option>
               <option value="V1.0">V1.0</option>
             </select>
           </div>
-          <div id="install-c3"><esp-web-install-button manifest="./manifest-v2.0.json?v=2"></esp-web-install-button></div>
-          <code id="path-c3" class="firmware-path">firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin</code>
+          <div id="install-c3"><esp-web-install-button manifest="./manifest-esp32-c3-v2.1.json?v=1"></esp-web-install-button></div>
+          <code id="path-c3" class="firmware-path">firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin</code>
           <div>
             <ul>
               <li>One PN532 reader connected to the ESP32-C3</li>
               <li>The newest available C3 release is selected by default</li>
+              <li>V2.1 adds preferred BSSID selection for multi-access-point Wi-Fi installations</li>
               <li>Use erase for a clean install or when replacing other firmware; disable erase for updates if you want to keep saved settings</li>
             </ul>
           </div>
@@ -151,7 +153,7 @@
               <option value="V1.0" selected>V1.0 (latest)</option>
             </select>
           </div>
-          <div id="install-s3"><esp-web-install-button manifest="./manifest-s3-v1.0.json?v=1"></esp-web-install-button></div>
+          <div id="install-s3"><esp-web-install-button manifest="./manifest-esp32-s3-v1.0.json?v=1"></esp-web-install-button></div>
           <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin</code>
           <div>
             <ul>
@@ -195,14 +197,15 @@
   <script>
     const releases = {
       c3: {
-        "V2.0": { manifest: "./manifest-v2.0.json?v=2", path: "firmware/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin" },
-        "V1.3": { manifest: "./manifest-v1.3.json?v=2", path: "firmware/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin" },
-        "V1.2": { manifest: "./manifest-v1.2.json?v=2", path: "firmware/V1.2/U1_Argus_Remote_RFID_V1.2.ino.merged.bin" },
-        "V1.1": { manifest: "./manifest-v1.1.json?v=2", path: "firmware/V1.1/U1_Argus_Remote_RFID_V1.1.ino.merged.bin" },
-        "V1.0": { manifest: "./manifest-v1.0.json?v=2", path: "firmware/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin" }
+        "V2.1": { manifest: "./manifest-esp32-c3-v2.1.json?v=1", path: "firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin" },
+        "V2.0": { manifest: "./manifest-esp32-c3-v2.0.json?v=1", path: "firmware/ESP32-C3/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin" },
+        "V1.3": { manifest: "./manifest-esp32-c3-v1.3.json?v=1", path: "firmware/ESP32-C3/V1.3/U1_Argus_Remote_RFID_V1.3.ino.merged.bin" },
+        "V1.2": { manifest: "./manifest-esp32-c3-v1.2.json?v=1", path: "firmware/ESP32-C3/V1.2/U1_Argus_Remote_RFID_V1.2.ino.merged.bin" },
+        "V1.1": { manifest: "./manifest-esp32-c3-v1.1.json?v=1", path: "firmware/ESP32-C3/V1.1/U1_Argus_Remote_RFID_V1.1.ino.merged.bin" },
+        "V1.0": { manifest: "./manifest-esp32-c3-v1.0.json?v=1", path: "firmware/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin" }
       },
       s3: {
-        "V1.0": { manifest: "./manifest-s3-v1.0.json?v=1", path: "firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin" }
+        "V1.0": { manifest: "./manifest-esp32-s3-v1.0.json?v=1", path: "firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin" }
       }
     };
 

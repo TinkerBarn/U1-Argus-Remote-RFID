@@ -2,6 +2,20 @@
 
 All public release changes are tracked here.
 
+## ESP32-C3 Single-Reader V2.1
+
+- Adds optional configuration of two preferred Wi-Fi BSSIDs for setups with multiple routers, repeaters, or mesh access points broadcasting one SSID
+- Connects through visible preferred 2.4 GHz access points in configured order and uses another access point of the SSID only when neither preferred BSSID is visible
+- Shows the currently connected BSSID in the dashboard Network tile
+- Mirrors standard ESP32-C3 firmware logs to USB-Serial/JTAG when required by the board profile
+- Retains the V2.0 PN532, OpenSpool, and QIDI RFID read/write implementation without behavior changes
+- Reorganizes public source and merged binaries into hardware-specific `ESP32-C3` and `ESP32-S3` folders
+
+Source and binary:
+
+- [source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino](./source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino)
+- [firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin](./firmware/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino.merged.bin)
+
 ## Documentation And Installer Maintenance
 
 - Converts the current ESP32-C3 and ESP32-S3 user guides to English-only documentation
@@ -36,11 +50,11 @@ Source and binary:
 
 Release source:
 
-- [source/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
+- [source/ESP32-C3/V2.0/U1_Argus_Remote_RFID_V2.0.ino](./source/ESP32-C3/V2.0/U1_Argus_Remote_RFID_V2.0.ino)
 
 Firmware folder:
 
-- [firmware/V2.0](./firmware/V2.0/)
+- [firmware/ESP32-C3/V2.0](./firmware/ESP32-C3/V2.0/)
 
 ## V1.3
 
@@ -53,11 +67,11 @@ Firmware folder:
 
 Release source:
 
-- [source/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
+- [source/ESP32-C3/V1.3/U1_Argus_Remote_RFID_V1.3.ino](./source/ESP32-C3/V1.3/U1_Argus_Remote_RFID_V1.3.ino)
 
 Firmware folder:
 
-- [firmware/V1.3](./firmware/V1.3/)
+- [firmware/ESP32-C3/V1.3](./firmware/ESP32-C3/V1.3/)
 
 ## V1.2
 
@@ -75,11 +89,11 @@ Firmware folder:
 
 Release source:
 
-- [source/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
+- [source/ESP32-C3/V1.2/U1_Argus_Remote_RFID_V1.2.ino](./source/ESP32-C3/V1.2/U1_Argus_Remote_RFID_V1.2.ino)
 
 Firmware folder:
 
-- [firmware/V1.2](./firmware/V1.2/)
+- [firmware/ESP32-C3/V1.2](./firmware/ESP32-C3/V1.2/)
 
 ## V1.1
 
@@ -106,11 +120,11 @@ Firmware folder:
 
 Release source:
 
-- [source/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
+- [source/ESP32-C3/V1.1/U1_Argus_Remote_RFID_V1.1.ino](./source/ESP32-C3/V1.1/U1_Argus_Remote_RFID_V1.1.ino)
 
 Firmware folder:
 
-- [firmware/V1.1](./firmware/V1.1/)
+- [firmware/ESP32-C3/V1.1](./firmware/ESP32-C3/V1.1/)
 
 ## V1.0
 
@@ -124,4 +138,4 @@ Firmware folder:
 
 Release source:
 
-- [source/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/V1.0/U1_Argus_Remote_RFID_V1_0.ino)
+- [source/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino](./source/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino)

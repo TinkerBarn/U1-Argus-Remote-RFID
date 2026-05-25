@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARDUINO_CLI="$ROOT_DIR/tools/arduino-cli"
 FQBN="${FQBN:-esp32:esp32:esp32c3}"
 BUILD_ROOT="$ROOT_DIR/.build"
-SKETCH_SRC="${1:-$ROOT_DIR/source/V2.0/U1_Argus_Remote_RFID_V2.0.ino}"
+SKETCH_SRC="${1:-$ROOT_DIR/source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino}"
 CTAGS_BIN="$HOME/Library/Arduino15/packages/builtin/tools/ctags/5.8-arduino11/ctags"
 
 if [[ ! -f "$SKETCH_SRC" ]]; then
