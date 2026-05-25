@@ -7,7 +7,7 @@ assigned Snapmaker U1 Tool Head.
 ## Requirements
 
 - ESP32-C3 Super Mini with one PN532 module in HSU/UART mode
-- Installed ESP32-C3 firmware, currently `V2.0`
+- Installed ESP32-C3 firmware, currently `V2.1`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -32,6 +32,7 @@ open automatically, open the configuration address manually.
 | Setting | Purpose |
 | --- | --- |
 | Wi-Fi SSID / Password | Access to the 2.4 GHz Wi-Fi network where the printer is reachable |
+| Preferred BSSID 1 / 2 | Optional priority for nearby 2.4 GHz access points or repeaters broadcasting the same SSID |
 | Hostname | Reader name on the local network, for example `argus-left`; accessible as `http://argus-left.local` |
 | Printer IP / Hostname | IP address or mDNS hostname of the Snapmaker U1 |
 | Printer Port | Printer API port; default is `7125` |
@@ -42,6 +43,54 @@ open automatically, open the configuration address manually.
 
 The C3 version operates exactly one local RFID reader. To monitor multiple
 spools, configure multiple C3 reader devices and link their dashboards.
+
+## Preferred BSSIDs
+
+A **BSSID** is the MAC address of a specific Wi-Fi access point or repeater
+radio, for example `AA:BB:CC:DD:EE:FF`. It is particularly useful in a more
+complex Wi-Fi setup where multiple routers, repeaters, or mesh nodes broadcast
+the same SSID. Configuring one or two nearby BSSIDs helps make sure this reader
+connects through the 2.4 GHz radio close to the printer instead of a distant
+access point.
+
+When BSSIDs are configured, the firmware:
+
+1. Looks for the configured SSID on preferred BSSID 1, then BSSID 2.
+2. Connects through the first visible preferred access point in that order.
+3. Uses another access point with the same SSID only if neither preferred
+   BSSID is visible.
+
+Enter only a BSSID for a **2.4 GHz** Wi-Fi radio. The ESP32-C3 cannot connect
+to a 5 GHz radio.
+
+### List Available BSSIDs On Windows
+
+Open PowerShell or Command Prompt:
+
+```powershell
+netsh wlan show networks mode=bssid
+```
+
+For a shorter PowerShell view:
+
+```powershell
+netsh wlan show networks mode=bssid | Select-String 'SSID|BSSID|Signal|Channel'
+```
+
+Locate your SSID and choose a BSSID on a 2.4 GHz channel. In most regions,
+2.4 GHz channel numbers are from `1` through `13`.
+
+### List Available BSSIDs On macOS
+
+On macOS versions that still include Apple's `airport` command, run:
+
+```sh
+/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s
+```
+
+If that command is unavailable, open **Wireless Diagnostics** and choose
+**Window > Scan**. Holding `Option` while clicking the Wi-Fi icon shows the
+BSSID of the access point to which the Mac is currently connected.
 
 ## Supported Tags
 
@@ -78,7 +127,7 @@ filament data from the printer.
 | Printer Tool Head | Assigned channel, manufacturer, material type, subtype, color, hotend temperatures, bed temperature, filament sensor, and official status when supplied by the printer |
 | Tag Reader | Last valid tag, UID, source (`OpenSpool` or `QIDI`), read manufacturer, material, color, and temperature values |
 | Set/Webhook result | Whether tag data was successfully transferred to the printer, HTTP status, and last sent data |
-| Network | SSID, IP address, hostname, signal strength, printer target, and firmware version |
+| Network | SSID, IP address, hostname, signal strength, currently connected BSSID, and firmware version |
 | Additional Readers | Quick access to configured additional reader dashboards |
 
 A tag is sent to the printer only after valid data has been read and an update
@@ -91,10 +140,12 @@ is required for the assigned channel.
 3. Place an OpenSpool or QIDI tag at the PN532 reader.
 4. Check that the Tag Reader data and Printer Tool Head data match.
 
-For connection problems, first verify the 2.4 GHz Wi-Fi network, printer IP or
-mDNS name, port `7125`, and the printer setting
+For connection problems, first verify the 2.4 GHz Wi-Fi network and that any
+preferred BSSID belongs to the configured SSID and is visible nearby. Then
+check the printer IP or mDNS name, port `7125`, and the printer setting
 **Filament Detection: External**.
 
 ## Reference
 
 - [Espressif ESP32-C3 product overview](https://www.espressif.com/en/products/socs/esp32-c3)
+- [Microsoft documentation for `netsh wlan`](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-wlan)
