@@ -44,6 +44,8 @@
 - Provide optional preferred Wi-Fi BSSIDs on current C3 and S3 releases for installations with multiple access points or repeaters; ESP32-S3 also reports visible same-SSID BSSIDs with RSSI
 - Protect printer filament metadata after loading: current releases pause the associated RFID reader and do not send tag changes while the assigned Tool Head reports filament detected
 - Provide a dual-reader ESP32-S3 firmware with a dedicated NFC polling task
+- Provide signed OTA updates for ESP32-S3 from the setup web interface, including upload progress and automatic page reconnection after reboot
+- Keep the dashboard responsive when a spool remains parked at a sensor by throttling repeated unchanged S3 tag reads
 - Keep the ESP32-C3 device UI compact and English-only because its release build is close to its available application space
 - Keep current documentation and the web installer in English
 
@@ -72,7 +74,7 @@ universal ESP32-C3 holders for custom installations outside the SH02 base.
 
 Both ESP32-C3 and ESP32-S3 provide 2.4 GHz `802.11 b/g/n` Wi-Fi according to Espressif. The S3 advantage in this project is not a claim of a different Wi-Fi standard: it is the substantially stronger application platform around the network traffic. The ESP32-C3 is a single-core RISC-V MCU up to 160 MHz with 400 KB SRAM. The ESP32-S3 is a dual-core Xtensa LX7 MCU up to 240 MHz with 512 KB internal SRAM and support for larger external flash and PSRAM.
 
-The **ESP32-S3 N16R8** board variant used here is sold as providing 16 MB flash and 8 MB PSRAM. On the tested expansion-board unit, the ROM boot log reported only a 4 MB accessible flash window. The public firmware therefore uses the boot-compatible `4MB (32Mb)` plus `Huge APP (3MB No OTA/1MB SPIFFS)` selections. The `16M Flash (3MB APP/9.9MB FATFS)` partition selection caused a boot-loop partition validation failure on that tested hardware. The S3 still provides substantially more runtime capacity for future functionality than the compact ESP32-C3 release line.
+The **ESP32-S3 N16R8** board variant used here is sold as providing 16 MB flash and 8 MB PSRAM. Hardware testing for `V1.3` confirmed the full 16 MB flash capacity. The earlier boot loop was caused by an unsuitable predefined partition table, not by a 4 MB hardware limit. `V1.3` therefore introduces a permanent custom layout with two `6.25 MiB` application slots for safe OTA updates plus approximately `3.4 MiB` of LittleFS space reserved for future protocol/configuration growth. PSRAM is not required by the current firmware; the diagnostic test build did not report active PSRAM on the tested board configuration.
 
 ### ESP32-S3 Runtime Split
 
@@ -104,6 +106,7 @@ Hardware-specific release tags avoid ambiguity between versions:
 - `esp32-s3-v1.0` marks the first S3 release and the starting point for the active development line.
 - `esp32-s3-v1.1` marks the S3 release with BSSID/RSSI visibility and persisted additional-reader Tool Head assignments.
 - `esp32-s3-v1.2` marks the S3 release with the per-spool filament-loaded safety lock.
+- `esp32-s3-v1.3` marks the S3 release with signed OTA updates, online update discovery support, and unchanged-tag throttling.
 
 Public releases are organized consistently by controller:
 
@@ -223,7 +226,7 @@ Available selections:
 | Hardware variant | Releases in installer | Default selection |
 | --- | --- | --- |
 | ESP32-C3 single-reader | `V2.2`, `V2.1`, `V2.0`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V2.2` |
-| ESP32-S3 dual-reader | `V1.2`, `V1.1`, `V1.0` | `V1.2` |
+| ESP32-S3 dual-reader | `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V1.3` |
 
 Release lists are ordered newest first; the latest available release for each hardware variant is selected when the page opens.
 
@@ -258,6 +261,28 @@ If the ESP32-C3 needs to be forced into flashing mode:
 
 Then start the flash process again in the web installer.
 
+### ESP32-S3 Signed OTA Updates
+
+Starting with **ESP32-S3 V1.3**, the setup web interface includes a **Signed
+Firmware Update** section:
+
+1. Open the reader setup page using its configured hostname or IP address.
+2. The page checks the published ESP32-S3 update catalog automatically; use
+   **Check for updates** to repeat the check.
+3. If an update is offered, download the `*.ota.signed.bin` file.
+4. Select that file under **Signed Firmware Update** and start installation.
+5. Follow the upload/verification progress. After the reader reboots, the
+   page reconnects and reloads automatically.
+
+OTA installation is deliberately restricted to files signed for this
+firmware. A corrupt, unsigned, or incorrect file is rejected before it can
+become the active boot image.
+
+Upgrading from **S3 V1.0-V1.2** to **V1.3** must be done once through the web
+installer or USB flashing, because those older releases do not yet contain
+the permanent dual-slot OTA partition layout. Subsequent S3 releases can use
+the signed OTA workflow.
+
 ### Arduino Source Releases
 
 ESP32-C3 single-reader public release source:
@@ -270,13 +295,14 @@ ESP32-C3 single-reader merged binary:
 
 ESP32-S3 dual-reader source:
 
-- [source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino](./source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino)
+- [source/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino](./source/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino)
 
-ESP32-S3 dual-reader merged binary:
+ESP32-S3 dual-reader web-installer binary and signed OTA update:
 
-- [firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin](./firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin)
+- [firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin](./firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin)
+- [firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ota.signed.bin](./firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ota.signed.bin)
 
-The ESP32-S3 release can be installed through the web installer, manually flashed from the merged binary, or built from Arduino source.
+The ESP32-S3 release can be newly installed through the web installer, manually flashed from the merged binary, updated from `V1.3` onward with its signed OTA file in Setup, or built from Arduino source.
 
 ### Arduino IDE
 
@@ -308,17 +334,19 @@ For the tested ESP32-S3 dual-reader board, select:
 | Board | `ESP32S3 Dev Module` |
 | CPU Frequency | `240MHz (WiFi)` |
 | Flash Mode | `QIO 80MHz` |
-| Flash Size | `4MB (32Mb)` |
-| Partition Scheme | `Huge APP (3MB No OTA/1MB SPIFFS)` |
+| Flash Size | `16MB (128Mb)` |
+| Partition Scheme | `Custom` using the included `partitions.csv` |
 | PSRAM | `OPI PSRAM` |
 | Arduino Runs On / Events Run On | `Core 1` / `Core 1` |
 | USB CDC On Boot | `Enabled` |
 | USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
 
-Although the module is sold as N16R8, the tested screw-terminal expansion-board
-unit reported a 4 MB accessible flash window at boot. Do not choose `16M Flash
-(3MB APP/9.9MB FATFS)` for this tested S3 setup; this selection caused a
-repeated boot failure because the partition table was rejected at startup.
+Open the complete `source/ESP32-S3/V1.3/` sketch folder, not the `.ino` file
+alone: `partitions.csv`, `build_opt.h`, and `ota_public_key.h` are required for
+the signed OTA build. The tested board confirmed `16 MB` flash when using this
+custom dual-slot layout. Do not substitute Arduino's predefined
+`16M Flash (3MB APP/9.9MB FATFS)` layout because it is not the OTA layout used
+by this release.
 
 #### Recommended First-Flash Option
 
@@ -356,7 +384,7 @@ FQBN=esp32:esp32:nologo_esp32c3_super_mini tools/compile-firmware.sh
 Build the ESP32-S3 dual-reader source with:
 
 ```sh
-FQBN='esp32:esp32:esp32s3:FlashSize=4M,PartitionScheme=huge_app,PSRAM=opi,FlashMode=qio,CPUFreq=240,LoopCore=1,EventsCore=1,USBMode=hwcdc,CDCOnBoot=cdc,UploadMode=default' tools/compile-firmware.sh source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino
+MAX_APP_SIZE=6553600 FQBN='esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=custom,PSRAM=opi,FlashMode=qio,CPUFreq=240,LoopCore=1,EventsCore=1,USBMode=hwcdc,CDCOnBoot=cdc,UploadMode=default' tools/compile-firmware.sh source/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino
 ```
 
 On Apple Silicon Macs, Arduino's bundled `ctags` tool may still be an Intel
@@ -375,6 +403,10 @@ The matching ESP32-C3 Arduino source for each public release is stored in `sourc
 ESP32-S3 dual-reader source is stored in `source/ESP32-S3/<version>/`.
 
 ESP32-S3 dual-reader browser-installer/merged binaries are stored in `firmware/ESP32-S3/<version>/`.
+
+ESP32-S3 signed OTA binaries are stored beside the corresponding merged
+binaries. The machine-readable update discovery catalog is stored in
+`updates/esp32-s3.json`.
 
 Local development iterations live in `dev/`, which is ignored by Git and not part of public releases.
 
@@ -407,7 +439,7 @@ Then configure the reader like this:
 
 1. Enter the SSID of your home Wi-Fi
 2. Enter the Wi-Fi password
-3. On ESP32-C3 `V2.2` or ESP32-S3 `V1.2`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
+3. On ESP32-C3 `V2.2` or ESP32-S3 `V1.3`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
 4. Enter the IP address or mDNS hostname of your Snapmaker U1
 5. Keep port `7125` unless you intentionally use a different port
 6. Enter an mDNS name
@@ -431,12 +463,12 @@ routers, repeaters, or mesh nodes broadcast the same SSID. Without a preferred
 BSSID, the ESP32 may join a more distant node; with one or two preferred
 BSSIDs, it can prioritize the nearby 2.4 GHz radios at the printer location.
 
-ESP32-C3 `V2.2` and ESP32-S3 `V1.2` try configured, visible BSSIDs in order.
+ESP32-C3 `V2.2` and ESP32-S3 `V1.3` try configured, visible BSSIDs in order.
 Only when neither preferred BSSID is visible do they connect to another access
 point broadcasting the configured SSID. Enter a BSSID for a **2.4 GHz** radio;
 neither ESP32 hardware variant connects to 5 GHz Wi-Fi.
 
-ESP32-S3 `V1.2` additionally lists visible BSSIDs for the configured SSID with
+ESP32-S3 `V1.3` additionally lists visible BSSIDs for the configured SSID with
 their RSSI values in the dashboard Network tile and in essential serial status
 output. For RSSI, a value closer to zero is better, for example `-55 dBm`
 indicates a stronger signal than `-83 dBm`.
@@ -517,10 +549,10 @@ Source and binary:
 
 ---
 
-## ESP32-S3 Dual-Reader V1.2
+## ESP32-S3 Dual-Reader V1.3
 
-`V1.2` is the current public ESP32-S3 N16R8 dual-reader release. It is built
-from the hardware-tested `V0.30` development baseline.
+`V1.3` is the current public ESP32-S3 N16R8 dual-reader release. Its OTA and
+stationary-tag behavior was validated in the `V0.35` development build.
 
 Highlights:
 
@@ -532,12 +564,16 @@ Highlights:
 - Fixes persistence of optional additional dual-reader Tool Head assignments after saving and rebooting
 - Checks each assigned Tool Head sensor before sending tag data and blocks changes after filament is loaded
 - Pauses RFID polling independently for each loaded spool position while the other reader remains available
-- Provides additional hardware capacity on an ESP32-S3 N16R8 board for future feature work
+- Adds a signed OTA upload in Setup with upload progress, verified installation, restart status, and automatic page reload
+- Uses a permanent 16 MB custom partition layout with two `6.25 MiB` OTA slots and reserved LittleFS capacity for future tag-protocol work
+- Automatically checks a public S3 update catalog from Setup and offers the latest signed OTA file when a newer release is available
+- Throttles an unchanged tag parked at a sensor after three seconds, checking it once every two seconds so the dashboard remains responsive without losing later corrections
 
-Source and binary:
+Source, first-install binary, and OTA update:
 
-- [source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino](./source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino)
-- [firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin](./firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin)
+- [source/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino](./source/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino)
+- [firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin](./firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin)
+- [firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ota.signed.bin](./firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ota.signed.bin)
 
 The browser web installer provides separate ESP32-C3 and ESP32-S3 install targets so the correct chip-specific binary can be selected before flashing.
 
@@ -569,7 +605,7 @@ Firmware folder:
 
 ---
 
-## Release V1.3
+## ESP32-C3 Legacy Release V1.3
 
 `V1.3` is the previous public release.
 

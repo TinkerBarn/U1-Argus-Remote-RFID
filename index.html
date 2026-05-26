@@ -151,18 +151,21 @@
           <div class="release-picker">
             <label for="release-s3">Release version</label>
             <select id="release-s3" aria-label="ESP32-S3 release version">
-              <option value="V1.2" selected>V1.2 (latest)</option>
+              <option value="V1.3" selected>V1.3 (latest)</option>
+              <option value="V1.2">V1.2</option>
               <option value="V1.1">V1.1</option>
               <option value="V1.0">V1.0</option>
             </select>
           </div>
-          <div id="install-s3"><esp-web-install-button manifest="./manifest-esp32-s3-v1.2.json?v=1"></esp-web-install-button></div>
-          <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin</code>
+          <div id="install-s3"><esp-web-install-button manifest="./manifest-esp32-s3-v1.3.json?v=1"></esp-web-install-button></div>
+          <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin</code>
           <div>
             <ul>
               <li>Two local PN532 readers for left and right spool positions</li>
               <li>The newest available S3 release is selected by default</li>
-              <li>V1.2 pauses each loaded spool reader and blocks accidental filament metadata updates</li>
+              <li>V1.3 adds signed OTA updates from the device setup page and prepares online update discovery</li>
+              <li>Stationary unchanged tags are throttled to keep the dashboard responsive</li>
+              <li>Pauses each loaded spool reader and blocks accidental filament metadata updates</li>
               <li>Includes BSSID/RSSI visibility and saved additional-reader Tool Head assignments</li>
               <li>Includes preferred BSSID selection and the dedicated NFC task</li>
             </ul>
@@ -211,6 +214,7 @@
         "V1.0": { manifest: "./manifest-esp32-c3-v1.0.json?v=1", path: "firmware/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin" }
       },
       s3: {
+        "V1.3": { manifest: "./manifest-esp32-s3-v1.3.json?v=1", path: "firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin" },
         "V1.2": { manifest: "./manifest-esp32-s3-v1.2.json?v=1", path: "firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin" },
         "V1.1": { manifest: "./manifest-esp32-s3-v1.1.json?v=1", path: "firmware/ESP32-S3/V1.1/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_1.ino.merged.bin" },
         "V1.0": { manifest: "./manifest-esp32-s3-v1.0.json?v=1", path: "firmware/ESP32-S3/V1.0/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_0.ino.merged.bin" }

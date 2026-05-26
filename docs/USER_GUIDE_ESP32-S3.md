@@ -1,6 +1,6 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-This guide describes the ESP32-S3 N16R8 `V1.2` version of the U1 Argus Remote
+This guide describes the ESP32-S3 N16R8 `V1.3` version of the U1 Argus Remote
 RFID reader. One controller operates two PN532 readers for the left and right
 spool positions and sends detected data to their assigned Snapmaker U1 Tool
 Heads.
@@ -8,7 +8,7 @@ Heads.
 ## Requirements
 
 - ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
-- Installed ESP32-S3 firmware `V1.2`
+- Installed ESP32-S3 firmware `V1.3`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -41,8 +41,8 @@ The S3 release combines two local readers in one controller:
   QIDI/MIFARE Classic tags.
 
 This separation keeps blocking NFC polling away from web and network
-processing. `V1.2` is functionally based on the hardware-tested `V0.30`
-development baseline.
+processing. `V1.3` retains the fast hardware-tested RFID baseline and adds a
+permanent dual-slot layout for signed OTA firmware updates.
 
 ## First Setup
 
@@ -68,10 +68,11 @@ open automatically, open the configuration address manually.
 | Additional dual reader | Optional link to another two-spool reader with its left/right Tool Heads |
 | Serial debug log | Additional diagnostic output; it can slow tag detection and is disabled by default |
 | QIDI config upload / reset | Updates or removes custom QIDI material and manufacturer mappings |
+| Signed Firmware Update | Automatically checks the published S3 update catalog and installs a selected signed OTA file with visible progress |
 
 With debug disabled, essential serial information remains available, including
 the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
-status. `V1.2` additionally reports visible 2.4 GHz BSSIDs for the configured
+status. `V1.3` additionally reports visible 2.4 GHz BSSIDs for the configured
 SSID with their RSSI values when the list is initially scanned or changes.
 
 ## Preferred BSSIDs
@@ -175,6 +176,23 @@ filament reaches its assigned Tool Head:
 This prevents an accidental or incorrect tag read from changing the material
 data of filament already loaded for printing.
 
+## Stationary Tag Throttling
+
+Starting with `V1.3`, a spool that stops with its tag continuously in front of
+a reader no longer causes continuous duplicate processing:
+
+- The first valid tag data is handled immediately as before.
+- When the same UID and decoded content remain at the same reader for
+  3 seconds, that reader pauses reads for 2 seconds.
+- After each pause, the tag is checked once again. If it is still unchanged,
+  another 2-second pause begins.
+- If the tag content changes, or a different tag is presented, the new data is
+  processed immediately on the next check.
+
+The periodic confirmation still permits the reader to correct printer data if
+a previous SET request did not succeed, while preventing a parked spool from
+making the dashboard slow.
+
 ## Initial Setup
 
 1. Start the reader and connect to its `U1-Argus-Setup-XXXX` hotspot.
@@ -201,6 +219,28 @@ displayed IP address only when you want to view dashboard details or change
 setup values. Keep debug logging disabled for normal use and enable it only
 temporarily for troubleshooting.
 
+## Signed OTA Firmware Update
+
+`V1.3` introduces safe web-based firmware updates for the ESP32-S3:
+
+1. Open the reader setup page through its hostname or IP address.
+2. The **Signed Firmware Update** section automatically checks the published
+   S3 update catalog. Select **Check for updates** to retry manually.
+3. Download the offered `*.ota.signed.bin` file when a newer S3 release is
+   available.
+4. Select the downloaded file in the update form and confirm installation.
+5. Watch the progress bar while the file is uploaded and verified.
+6. After a valid update, the reader restarts; the setup page waits for the
+   device to return and reloads automatically.
+
+The reader verifies the firmware signature before activating an uploaded
+image. A damaged, unsigned, or wrong image is rejected and the currently
+running firmware remains available.
+
+Important migration note: `V1.0`, `V1.1`, and `V1.2` use an older flash
+layout. Install `V1.3` once through the Web Installer or USB before using OTA
+updates. From `V1.3` onward, updates use the permanent dual-slot layout.
+
 ## Manual Arduino IDE Upload Settings
 
 For the tested ESP32-S3 dual-reader board, use:
@@ -210,19 +250,24 @@ For the tested ESP32-S3 dual-reader board, use:
 | Board | `ESP32S3 Dev Module` |
 | CPU Frequency | `240MHz (WiFi)` |
 | Flash Mode | `QIO 80MHz` |
-| Flash Size | `4MB (32Mb)` |
-| Partition Scheme | `Huge APP (3MB No OTA/1MB SPIFFS)` |
+| Flash Size | `16MB (128Mb)` |
+| Partition Scheme | `Custom` using the included `partitions.csv` |
 | PSRAM | `OPI PSRAM` |
 | Arduino Runs On / Events Run On | `Core 1` / `Core 1` |
 | USB CDC On Boot | `Enabled` |
 | USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
 
+Open the complete `source/ESP32-S3/V1.3/` sketch folder in Arduino IDE so the
+included `partitions.csv`, `build_opt.h`, and `ota_public_key.h` are present
+for compilation. The permanent partition layout provides two `6.25 MiB` OTA
+application slots and approximately `3.4 MiB` LittleFS capacity for future
+features.
+
 Keep `Erase All Flash Before Sketch Upload` disabled for updates if existing
-settings should remain stored. Although the module is sold as N16R8, the
-tested screw-terminal expansion-board unit reported a 4 MB accessible flash
-window at boot. Do not select `16M Flash (3MB APP/9.9MB FATFS)` for this
-tested board configuration: it caused a boot-loop partition validation
-failure.
+settings should remain stored. Hardware testing confirmed the full `16 MB`
+flash capacity on the reference N16R8 board when using the provided custom
+layout. Do not replace it with the predefined
+`16M Flash (3MB APP/9.9MB FATFS)` partition layout.
 
 ## Troubleshooting
 
