@@ -7,7 +7,7 @@ assigned Snapmaker U1 Tool Head.
 ## Requirements
 
 - ESP32-C3 Super Mini with one PN532 module in HSU/UART mode
-- Installed ESP32-C3 firmware, currently `V2.1`
+- Installed ESP32-C3 firmware, currently `V2.2`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -140,6 +140,21 @@ filament data from the printer.
 
 A tag is sent to the printer only after valid data has been read and an update
 is required for the assigned channel.
+
+## Filament-Loaded Safety Lock
+
+Starting with `V2.2`, the reader protects the active printer filament
+assignment after filament has reached the assigned Tool Head:
+
+- Immediately before sending different tag data, the reader checks the
+  printer's filament sensor.
+- Tag data is sent only while the sensor reports **No filament**.
+- While the sensor reports **Filament detected**, RFID polling pauses and
+  printer motion status is checked approximately every five seconds.
+- When filament is removed, normal RFID detection and update behavior resumes.
+
+This prevents a nearby, changed, or incorrectly read tag from overwriting the
+filament data for a spool that is already loaded for printing.
 
 ## Initial Setup
 

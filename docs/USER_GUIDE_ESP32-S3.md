@@ -1,6 +1,6 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-This guide describes the ESP32-S3 N16R8 `V1.1` version of the U1 Argus Remote
+This guide describes the ESP32-S3 N16R8 `V1.2` version of the U1 Argus Remote
 RFID reader. One controller operates two PN532 readers for the left and right
 spool positions and sends detected data to their assigned Snapmaker U1 Tool
 Heads.
@@ -8,7 +8,7 @@ Heads.
 ## Requirements
 
 - ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
-- Installed ESP32-S3 firmware `V1.1`
+- Installed ESP32-S3 firmware `V1.2`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -41,7 +41,7 @@ The S3 release combines two local readers in one controller:
   QIDI/MIFARE Classic tags.
 
 This separation keeps blocking NFC polling away from web and network
-processing. `V1.1` is functionally based on the hardware-tested `V0.29`
+processing. `V1.2` is functionally based on the hardware-tested `V0.30`
 development baseline.
 
 ## First Setup
@@ -71,7 +71,7 @@ open automatically, open the configuration address manually.
 
 With debug disabled, essential serial information remains available, including
 the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
-status. `V1.1` additionally reports visible 2.4 GHz BSSIDs for the configured
+status. `V1.2` additionally reports visible 2.4 GHz BSSIDs for the configured
 SSID with their RSSI values when the list is initially scanned or changes.
 
 ## Preferred BSSIDs
@@ -157,6 +157,23 @@ The S3 dashboard displays both local spool positions separately.
 | Set result | Result of the last update to the relevant printer channel, including HTTP status |
 | Network | SSID, IP address, hostname, signal strength, currently connected BSSID, firmware version, and visible 2.4 GHz BSSIDs for the configured SSID with RSSI and channel |
 | Additional Reader | Quick access to an optional additional two-spool dashboard |
+
+## Filament-Loaded Safety Lock
+
+Starting with `V1.2`, each local reader is protected independently after
+filament reaches its assigned Tool Head:
+
+- Immediately before sending different tag data, the firmware checks the
+  filament sensor for the matching Tool Head.
+- A tag update is sent only when that sensor reports **No filament**.
+- When a side reports **Filament detected**, RFID polling pauses for that side
+  and its printer motion status is checked approximately every five seconds.
+- The other spool reader remains available for a new spool and tag.
+- After filament is removed, the paused side resumes normal RFID detection and
+  update behavior.
+
+This prevents an accidental or incorrect tag read from changing the material
+data of filament already loaded for printing.
 
 ## Initial Setup
 

@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARDUINO_CLI="$ROOT_DIR/tools/arduino-cli"
 FQBN="${FQBN:-esp32:esp32:esp32c3}"
 BUILD_ROOT="$ROOT_DIR/.build"
-SKETCH_SRC="${1:-$ROOT_DIR/source/ESP32-C3/V2.1/U1_Argus_Remote_RFID_ESP32-C3_V2_1.ino}"
+SKETCH_SRC="${1:-$ROOT_DIR/source/ESP32-C3/V2.2/U1_Argus_Remote_RFID_ESP32-C3_V2_2.ino}"
 CTAGS_BIN="$HOME/Library/Arduino15/packages/builtin/tools/ctags/5.8-arduino11/ctags"
 
 if [[ ! -f "$SKETCH_SRC" ]]; then
@@ -14,9 +14,9 @@ if [[ ! -f "$SKETCH_SRC" ]]; then
 fi
 
 if [[ "$(uname -m)" == "arm64" ]] && [[ -x "$CTAGS_BIN" ]] && file "$CTAGS_BIN" | grep -q 'x86_64'; then
-  if ! /usr/bin/pgrep oahd >/dev/null 2>&1; then
+  if ! "$CTAGS_BIN" --version >/dev/null 2>&1; then
     cat >&2 <<'EOF'
-Arduino's bundled ctags is an Intel x86_64 binary, but Rosetta 2 is not running.
+Arduino's bundled ctags is an Intel x86_64 binary, but Rosetta 2 is not available.
 
 Install Rosetta on this Apple Silicon Mac, then run this command again:
   softwareupdate --install-rosetta --agree-to-license

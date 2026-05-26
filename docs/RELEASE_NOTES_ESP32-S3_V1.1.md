@@ -40,7 +40,7 @@ validation failure.
 
 ## Upgrade Notes
 
-- Disable erase when upgrading an existing reader if saved Wi-Fi, printer,
-  BSSID, and QIDI mapping settings should be retained.
+- Web-installer updates retain saved Wi-Fi, printer, BSSID, and QIDI mapping
+  settings because the installer no longer prompts for an erase operation.
 - After upgrading from V1.0, enter and save additional-reader Tool Head
   assignments once so they are stored with the corrected keys.

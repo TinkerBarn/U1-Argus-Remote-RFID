@@ -2,6 +2,42 @@
 
 All public release changes are tracked here.
 
+## ESP32-S3 Dual-Reader V1.2
+
+- Adds a filament-loaded safety lock: tag data is sent only after a fresh
+  sensor query confirms that the assigned Tool Head has no filament loaded
+- Pauses RFID polling independently for a spool position whose Tool Head
+  reports filament detected; the other local reader remains available
+- Reduces motion polling for a loaded channel to approximately every five
+  seconds and resumes normal behavior after unloading
+- Retains the hardware-confirmed fast QIDI and OpenSpool read path, BSSID/RSSI
+  visibility, and the FreeRTOS dual-reader architecture
+
+Source and binary:
+
+- [source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino](./source/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino)
+- [firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin](./firmware/ESP32-S3/V1.2/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_2.ino.merged.bin)
+
+## ESP32-C3 Single-Reader V2.2
+
+- Adds the filament-loaded safety lock with a fresh sensor query before any
+  tag-triggered SET
+- Pauses PN532 polling while filament is detected and reduces loaded-state
+  motion polling to approximately every five seconds
+- Keeps printer polling active after a successful tag read on the single-core
+  firmware so the safety lock can engage while a tag remains in position
+- Retains the V2.1 PN532, QIDI, OpenSpool, and BSSID behavior
+
+Source and binary:
+
+- [source/ESP32-C3/V2.2/U1_Argus_Remote_RFID_ESP32-C3_V2_2.ino](./source/ESP32-C3/V2.2/U1_Argus_Remote_RFID_ESP32-C3_V2_2.ino)
+- [firmware/ESP32-C3/V2.2/U1_Argus_Remote_RFID_ESP32-C3_V2_2.ino.merged.bin](./firmware/ESP32-C3/V2.2/U1_Argus_Remote_RFID_ESP32-C3_V2_2.ino.merged.bin)
+
+## Installer Maintenance
+
+- Removes the web-installer erase prompt from all selectable firmware
+  manifests because it did not provide a reliable erase workflow
+
 ## ESP32-S3 Dual-Reader V1.1
 
 - Shows the currently connected BSSID in the dashboard Network tile

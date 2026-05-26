@@ -35,8 +35,8 @@ CTAGS_BIN="$HOME/Library/Arduino15/packages/builtin/tools/ctags/5.8-arduino11/ct
 if [[ -x "$CTAGS_BIN" ]]; then
   file "$CTAGS_BIN"
   if [[ "$(uname -m)" == "arm64" ]] && file "$CTAGS_BIN" | grep -q 'x86_64'; then
-    if /usr/bin/pgrep oahd >/dev/null 2>&1; then
-      echo "OK: Rosetta service is running."
+    if "$CTAGS_BIN" --version >/dev/null 2>&1; then
+      echo "OK: Rosetta can execute Arduino's Intel ctags tool."
     else
       echo "MISSING: Rosetta 2 is required because Arduino ctags is x86_64."
       echo "Install manually: softwareupdate --install-rosetta --agree-to-license"

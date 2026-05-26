@@ -1,13 +1,13 @@
 {
   "name": "U1 Argus Remote RFID - ESP32-C3 Single Reader",
-  "version": "V2.0",
+  "version": "V2.2",
   "home_assistant_domain": "",
   "builds": [
     {
       "chipFamily": "ESP32-C3",
       "parts": [
         {
-          "path": "firmware/ESP32-C3/V2.0/U1_Argus_Remote_RFID_V2.0.ino.merged.bin",
+          "path": "firmware/ESP32-C3/V2.2/U1_Argus_Remote_RFID_ESP32-C3_V2_2.ino.merged.bin",
           "offset": 0
         }
       ]
