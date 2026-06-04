@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "hardware": "ESP32-S3 N16R8",
-  "latest": "V1.4",
+  "latest": "V1.5",
   "ota": {
-    "version": "V1.4",
-    "file": "U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_4.ota.signed.bin",
-    "download_url": "https://tinkerbarn.github.io/U1-Argus-Remote-RFID/firmware/ESP32-S3/V1.4/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_4.ota.signed.bin",
-    "sha256": "5098fa460d5f2afc52bc0b83b09bd2d42bd3a57a9e106f177aed2d661cc517aa"
+    "version": "V1.5",
+    "file": "U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ota.signed.bin",
+    "download_url": "https://tinkerbarn.github.io/U1-Argus-Remote-RFID/firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ota.signed.bin",
+    "sha256": "30e4d56a950a5ff66f615b27f28fdbea6e0d2f70dc6e1399b4ccd0f7a158f1f1"
   },
   "web_installer": "https://tinkerbarn.github.io/U1-Argus-Remote-RFID/",
   "notes": "The catalog is used for update discovery. Installation remains protected by firmware signature verification on the reader."

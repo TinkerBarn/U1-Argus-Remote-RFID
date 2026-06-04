@@ -1,6 +1,6 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-This guide describes the ESP32-S3 N16R8 `V1.4` version of the U1 Argus Remote
+This guide describes the ESP32-S3 N16R8 `V1.5` version of the U1 Argus Remote
 RFID reader. One controller operates two PN532 readers for the left and right
 spool positions and sends detected data to their assigned Snapmaker U1 Tool
 Heads.
@@ -8,7 +8,7 @@ Heads.
 ## Requirements
 
 - ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
-- Installed ESP32-S3 firmware `V1.4`
+- Installed ESP32-S3 firmware `V1.5`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -41,8 +41,9 @@ The S3 release combines two local readers in one controller:
   QIDI/MIFARE Classic tags.
 
 This separation keeps blocking NFC polling away from web and network
-processing. `V1.4` retains the fast hardware-tested RFID baseline and the
-permanent dual-slot layout for signed OTA firmware updates.
+processing. `V1.5` retains the fast hardware-tested RFID baseline, the
+permanent dual-slot layout for signed OTA firmware updates, and adds safer
+card identity handling for newer printer firmware.
 
 ## First Setup
 
@@ -72,7 +73,7 @@ open automatically, open the configuration address manually.
 
 With debug disabled, essential serial information remains available, including
 the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
-status. `V1.4` additionally reports visible 2.4 GHz BSSIDs for the configured
+status. `V1.5` additionally reports visible 2.4 GHz BSSIDs for the configured
 SSID with their RSSI values when the list is initially scanned or changes.
 
 When opened from the first-boot captive portal, Setup intentionally shows only
@@ -80,6 +81,24 @@ the fields required for initial Wi-Fi, reader, printer, and local tool-head
 configuration. Advanced sections such as QIDI config upload, signed firmware
 update, diagnostics, and additional-reader configuration are available after
 the device has joined Wi-Fi and Setup is opened from the normal dashboard.
+
+## Printer Send Compatibility
+
+`V1.5` sends `CARD_UID` with parsed QIDI and OpenSpool tag data so newer
+printer-side integrations can identify the physical card. It also sends
+`CARD_TYPE` where supported:
+
+| Tag family | `CARD_TYPE` |
+| --- | --- |
+| QIDI / MIFARE Classic | `M1` |
+| OpenSpool / NTAG / MIFARE Ultralight | `NTAG` |
+
+If the printer firmware rejects `CARD_TYPE`, the reader automatically retries
+the same update without `CARD_TYPE` and keeps using `CARD_UID`.
+
+The firmware does not automatically send UID-only data after a temporary tag
+read or parse failure. This avoids clearing existing printer filament data
+when a tag was only partially read while moving past the PN532.
 
 ## Preferred BSSIDs
 
@@ -263,7 +282,7 @@ For the tested ESP32-S3 dual-reader board, use:
 | USB CDC On Boot | `Enabled` |
 | USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
 
-Open the complete `source/ESP32-S3/V1.4/` sketch folder in Arduino IDE so the
+Open the complete `source/ESP32-S3/V1.5/` sketch folder in Arduino IDE so the
 included `partitions.csv`, `build_opt.h`, and `ota_public_key.h` are present
 for compilation. The permanent partition layout provides two `6.25 MiB` OTA
 application slots and approximately `3.4 MiB` LittleFS capacity for future
