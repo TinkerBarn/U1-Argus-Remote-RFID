@@ -151,7 +151,8 @@
           <div class="release-picker">
             <label for="release-s3">Release version</label>
             <select id="release-s3" aria-label="ESP32-S3 release version">
-              <option value="V1.5" selected>V1.5 (latest)</option>
+              <option value="V1.6" selected>V1.6 (latest)</option>
+              <option value="V1.5">V1.5</option>
               <option value="V1.4">V1.4</option>
               <option value="V1.3">V1.3</option>
               <option value="V1.2">V1.2</option>
@@ -159,13 +160,13 @@
               <option value="V1.0">V1.0</option>
             </select>
           </div>
-          <div id="install-s3"><esp-web-install-button manifest="./manifest-esp32-s3-v1.5.json?v=1"></esp-web-install-button></div>
-          <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino.merged.bin</code>
+          <div id="install-s3"><esp-web-install-button manifest="./manifest-esp32-s3-v1.6.json?v=1"></esp-web-install-button></div>
+          <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin</code>
           <div>
             <ul>
               <li>Two local PN532 readers for left and right spool positions</li>
               <li>The newest available S3 release is selected by default</li>
-              <li>V1.5 keeps the fast RFID baseline and improves post-OTA PN532 recovery with a soft reinitialization sequence</li>
+              <li>V1.6 adds self-heal repair when the printer loses filament metadata after a successful tag update</li>
               <li>Signed OTA updates are available from the device setup page</li>
               <li>Stationary unchanged tags are throttled to keep the dashboard responsive</li>
               <li>Pauses each loaded spool reader and blocks accidental filament metadata updates</li>
@@ -217,6 +218,7 @@
         "V1.0": { manifest: "./manifest-esp32-c3-v1.0.json?v=1", path: "firmware/ESP32-C3/V1.0/U1_Argus_Remote_RFID_V1_0.ino.merged.bin" }
       },
       s3: {
+        "V1.6": { manifest: "./manifest-esp32-s3-v1.6.json?v=1", path: "firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin" },
         "V1.5": { manifest: "./manifest-esp32-s3-v1.5.json?v=1", path: "firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino.merged.bin" },
         "V1.4": { manifest: "./manifest-esp32-s3-v1.4.json?v=1", path: "firmware/ESP32-S3/V1.4/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_4.ino.merged.bin" },
         "V1.3": { manifest: "./manifest-esp32-s3-v1.3.json?v=1", path: "firmware/ESP32-S3/V1.3/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_3.ino.merged.bin" },

@@ -109,6 +109,7 @@ Hardware-specific release tags avoid ambiguity between versions:
 - `esp32-s3-v1.3` marks the S3 release with signed OTA updates, online update discovery support, and unchanged-tag throttling.
 - `esp32-s3-v1.4` marks the S3 release with the refined setup page and reduced captive-portal setup view.
 - `esp32-s3-v1.5` marks the S3 release with CARD_UID/CARD_TYPE compatibility fallback and post-OTA PN532 soft reinitialization.
+- `esp32-s3-v1.6` marks the S3 release with printer lost-info self-heal repair after successful tag updates.
 
 Public releases are organized consistently by controller:
 
@@ -228,7 +229,7 @@ Available selections:
 | Hardware variant | Releases in installer | Default selection |
 | --- | --- | --- |
 | ESP32-C3 single-reader | `V2.2`, `V2.1`, `V2.0`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V2.2` |
-| ESP32-S3 dual-reader | `V1.5`, `V1.4`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V1.5` |
+| ESP32-S3 dual-reader | `V1.6`, `V1.5`, `V1.4`, `V1.3`, `V1.2`, `V1.1`, `V1.0` | `V1.6` |
 
 Release lists are ordered newest first; the latest available release for each hardware variant is selected when the page opens.
 
@@ -297,12 +298,12 @@ ESP32-C3 single-reader merged binary:
 
 ESP32-S3 dual-reader source:
 
-- [source/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino](./source/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino)
+- [source/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino](./source/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino)
 
 ESP32-S3 dual-reader web-installer binary and signed OTA update:
 
-- [firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino.merged.bin](./firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino.merged.bin)
-- [firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ota.signed.bin](./firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ota.signed.bin)
+- [firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin](./firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin)
+- [firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ota.signed.bin](./firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ota.signed.bin)
 
 The ESP32-S3 release can be newly installed through the web installer, manually flashed from the merged binary, updated from `V1.3` onward with its signed OTA file in Setup, or built from Arduino source.
 
@@ -343,7 +344,7 @@ For the tested ESP32-S3 dual-reader board, select:
 | USB CDC On Boot | `Enabled` |
 | USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
 
-Open the complete `source/ESP32-S3/V1.5/` sketch folder, not the `.ino` file
+Open the complete `source/ESP32-S3/V1.6/` sketch folder, not the `.ino` file
 alone: `partitions.csv`, `build_opt.h`, and `ota_public_key.h` are required for
 the signed OTA build. The tested board confirmed `16 MB` flash when using this
 custom dual-slot layout. Do not substitute Arduino's predefined
@@ -386,7 +387,7 @@ FQBN=esp32:esp32:nologo_esp32c3_super_mini tools/compile-firmware.sh
 Build the ESP32-S3 dual-reader source with:
 
 ```sh
-MAX_APP_SIZE=6553600 FQBN='esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=custom,PSRAM=opi,FlashMode=qio,CPUFreq=240,LoopCore=1,EventsCore=1,USBMode=hwcdc,CDCOnBoot=cdc,UploadMode=default' tools/compile-firmware.sh source/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino
+MAX_APP_SIZE=6553600 FQBN='esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=custom,PSRAM=opi,FlashMode=qio,CPUFreq=240,LoopCore=1,EventsCore=1,USBMode=hwcdc,CDCOnBoot=cdc,UploadMode=default' tools/compile-firmware.sh source/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino
 ```
 
 On Apple Silicon Macs, Arduino's bundled `ctags` tool may still be an Intel
@@ -442,7 +443,7 @@ Then configure the reader like this:
 
 1. Enter the SSID of your home Wi-Fi
 2. Enter the Wi-Fi password
-3. On ESP32-C3 `V2.2` or ESP32-S3 `V1.5`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
+3. On ESP32-C3 `V2.2` or ESP32-S3 `V1.6`, optionally enter up to two preferred Wi-Fi BSSIDs; visible preferred access points are tried first, with other access points of the same SSID used only when neither preferred BSSID is visible
 4. Enter the IP address or mDNS hostname of your Snapmaker U1
 5. Keep port `7125` unless you intentionally use a different port
 6. Enter an mDNS name
@@ -466,12 +467,12 @@ routers, repeaters, or mesh nodes broadcast the same SSID. Without a preferred
 BSSID, the ESP32 may join a more distant node; with one or two preferred
 BSSIDs, it can prioritize the nearby 2.4 GHz radios at the printer location.
 
-ESP32-C3 `V2.2` and ESP32-S3 `V1.5` try configured, visible BSSIDs in order.
+ESP32-C3 `V2.2` and ESP32-S3 `V1.6` try configured, visible BSSIDs in order.
 Only when neither preferred BSSID is visible do they connect to another access
 point broadcasting the configured SSID. Enter a BSSID for a **2.4 GHz** radio;
 neither ESP32 hardware variant connects to 5 GHz Wi-Fi.
 
-ESP32-S3 `V1.5` additionally lists visible BSSIDs for the configured SSID with
+ESP32-S3 `V1.6` additionally lists visible BSSIDs for the configured SSID with
 their RSSI values in the dashboard Network tile and in essential serial status
 output. For RSSI, a value closer to zero is better, for example `-55 dBm`
 indicates a stronger signal than `-83 dBm`.
@@ -552,12 +553,12 @@ Source and binary:
 
 ---
 
-## ESP32-S3 Dual-Reader V1.5
+## ESP32-S3 Dual-Reader V1.6
 
-`V1.5` is the current public ESP32-S3 N16R8 dual-reader release. It keeps the
-fast `V1.4` RFID, safety, BSSID, setup, and signed OTA behavior while adding
-printer compatibility improvements for card identity metadata and a soft PN532
-reinitialization path after OTA updates.
+`V1.6` is the current public ESP32-S3 N16R8 dual-reader release. It keeps the
+fast `V1.5` RFID, safety, BSSID, setup, signed OTA, CARD_UID/CARD_TYPE, and
+PN532 recovery behavior while adding self-heal repair for printer channels that
+lose filament metadata after a successful external RFID update.
 
 Highlights:
 
@@ -577,12 +578,16 @@ Highlights:
 - Sends `CARD_UID` with parsed tag data, adds `CARD_TYPE` where supported, and falls back automatically when older printer firmware rejects `CARD_TYPE`
 - Avoids UID-only sends after transient tag parse/read failures so existing printer filament data is not cleared accidentally
 - Performs a PN532 soft reinitialization sequence after OTA/reboot if a reader is slow to answer, reducing the need for a physical power cycle
+- Repairs a cleared printer channel by re-sending the last successfully sent tag payload when the printer reports `NONE`/no card UID/zero temperatures
+- Allows self-heal repair regardless of filament sensor state, while normal new-tag changes remain blocked after `filament_detected=true`
+- Keeps new tag updates available while `filament_detected=false` and keeps duplicate-send throttling for an unchanged tag parked at the reader
+- Keeps a slow filament-info sync active even while Moonraker WebSocket is connected so dashboard/printer data does not become stale
 
 Source, first-install binary, and OTA update:
 
-- [source/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino](./source/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino)
-- [firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino.merged.bin](./firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ino.merged.bin)
-- [firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ota.signed.bin](./firmware/ESP32-S3/V1.5/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_5.ota.signed.bin)
+- [source/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino](./source/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino)
+- [firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin](./firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin)
+- [firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ota.signed.bin](./firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ota.signed.bin)
 
 The browser web installer provides separate ESP32-C3 and ESP32-S3 install targets so the correct chip-specific binary can be selected before flashing.
 
