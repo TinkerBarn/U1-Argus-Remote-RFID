@@ -58,7 +58,7 @@ There are two supported hardware approaches:
 | Variant | Readers per controller | Best fit | Architecture |
 | --- | ---: | --- | --- |
 | **ESP32-C3 Super Mini + 1 PN532** | 1 | Small, low-cost readers; deploy one controller per spool/reader position | Single-core firmware; Wi-Fi, dashboard, printer API, and NFC handling share one MCU core |
-| **ESP32-S3 N16R8 + 2 PN532** | 2 | One two-spool reader unit with more expansion room | Dual-core firmware; a FreeRTOS NFC task polls both PN532 readers while the Arduino main loop serves Wi-Fi, dashboard, and printer communication |
+| **ESP32-S3 N16R8 + 2 PN532** | 2 | One two-spool reader unit with more expansion room | Dual-core firmware; requires an S3 board with **16 MB flash** and 8 MB PSRAM; a FreeRTOS NFC task polls both PN532 readers while the Arduino main loop serves Wi-Fi, dashboard, and printer communication |
 
 ### Printable SH02 Base And Reader Holders
 
@@ -74,7 +74,18 @@ universal ESP32-C3 holders for custom installations outside the SH02 base.
 
 Both ESP32-C3 and ESP32-S3 provide 2.4 GHz `802.11 b/g/n` Wi-Fi according to Espressif. The S3 advantage in this project is not a claim of a different Wi-Fi standard: it is the substantially stronger application platform around the network traffic. The ESP32-C3 is a single-core RISC-V MCU up to 160 MHz with 400 KB SRAM. The ESP32-S3 is a dual-core Xtensa LX7 MCU up to 240 MHz with 512 KB internal SRAM and support for larger external flash and PSRAM.
 
-The **ESP32-S3 N16R8** board variant used here is sold as providing 16 MB flash and 8 MB PSRAM. Hardware testing for `V1.3` confirmed the full 16 MB flash capacity. The earlier boot loop was caused by an unsuitable predefined partition table, not by a 4 MB hardware limit. `V1.3` therefore introduces a permanent custom layout with two `6.25 MiB` application slots for safe OTA updates plus approximately `3.4 MiB` of LittleFS space reserved for future protocol/configuration growth. PSRAM is not required by the current firmware; the diagnostic test build did not report active PSRAM on the tested board configuration.
+The **ESP32-S3 N16R8** board variant used here must provide **16 MB flash** and
+8 MB PSRAM. Do not substitute an ESP32-S3 board with 4 MB or 8 MB flash: the
+browser installer can still complete the write process, but the firmware may
+not boot correctly afterward, leaving no setup hotspot and no reachable web
+interface. Hardware testing for `V1.3` confirmed the full 16 MB flash capacity.
+The earlier boot loop was caused by an unsuitable predefined partition table,
+not by a 4 MB hardware limit. `V1.3` therefore introduces a permanent custom
+layout with two `6.25 MiB` application slots for safe OTA updates plus
+approximately `3.4 MiB` of LittleFS space reserved for future
+protocol/configuration growth. PSRAM is not required by the current firmware;
+the diagnostic test build did not report active PSRAM on the tested board
+configuration.
 
 ### ESP32-S3 Runtime Split
 
@@ -154,7 +165,7 @@ Important note:
 
 ### ESP32-S3 Dual-Reader Bill Of Materials
 
-- **ESP32-S3 N16R8** board, preferably supplied with a screw-terminal expansion board for easier and more secure PN532 wiring
+- **ESP32-S3 N16R8** board with **16 MB flash** and 8 MB PSRAM, preferably supplied with a screw-terminal expansion board for easier and more secure PN532 wiring
 - **2 x PN532 NFC/RFID modules**
 - Hookup wires for power and two independent HSU/UART connections
 - **USB cable** for flashing and later power
@@ -164,6 +175,15 @@ board. It makes the two PN532 UART connections easier to assemble and more
 robust during normal handling. The expansion board is a wiring convenience,
 not a firmware requirement; a compatible ESP32-S3 N16R8 board can also be
 wired directly.
+
+Important flash-size requirement:
+
+- The ESP32-S3 dual-reader firmware is built for the 16 MB N16R8 flash layout.
+- ESP32-S3 boards sold with only 4 MB or 8 MB flash are not supported.
+- A successful-looking web-installer flash is not enough to prove compatibility.
+  If an S3 board does not create the `U1-Argus-Setup-XXXX` hotspot after
+  flashing and `http://192.168.4.1` never becomes reachable, verify the module's
+  flash size before troubleshooting Wi-Fi or PN532 wiring.
 
 Purchase example: [ESP32-S3 N16R8 with screw-terminal expansion board on Amazon.de](https://www.amazon.de/dp/B0FKBLR2KF)
 
@@ -239,15 +259,21 @@ Recommended browser:
 
 Recommended steps:
 
-1. Connect the **ESP32-C3 Super Mini** by USB
+1. Connect the **ESP32-C3 Super Mini** or **ESP32-S3 N16R8 with 16 MB flash**
+   by USB
 2. Open the web installer
-3. Click **Install**
-4. Select the correct serial device
-5. Wait until flashing is finished
+3. Select the matching hardware variant and release
+4. Click **Install**
+5. Select the correct serial device
+6. Wait until flashing is finished
 
 The web installer does not offer an erase option. Updating an existing U1
 Argus Remote RFID installation therefore keeps stored Wi-Fi, printer, reader,
 and uploaded QIDI settings unless settings are cleared separately.
+
+For ESP32-S3 installs, confirm that the board is an **N16R8 / 16 MB flash**
+variant before flashing. Boards with only 4 MB or 8 MB flash are not supported
+by the current S3 firmware layout.
 
 If the board is not detected immediately:
 

@@ -67,6 +67,23 @@
       color: #e3fffb; font-size: 0.9rem; margin-bottom: 12px;
     }
     .install-box { display: flex; flex-direction: column; gap: 16px; }
+    .requirement-check {
+      display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px;
+      border-radius: 10px; background: rgba(255, 193, 7, 0.12);
+      border: 1px solid rgba(255, 214, 102, 0.34); color: #fff3bf;
+      font-size: 0.94rem; line-height: 1.35;
+    }
+    .requirement-check input {
+      width: 18px; height: 18px; margin-top: 2px; flex: 0 0 auto; cursor: pointer;
+    }
+    .requirement-check label { cursor: pointer; }
+    .requirement-check strong { color: #fff8dc; }
+    .install-disabled-note {
+      padding: 12px 14px; border-radius: 10px;
+      background: rgba(8, 15, 28, 0.45); border: 1px solid rgba(255,255,255,0.10);
+      color: var(--muted); font-size: 0.92rem;
+    }
+    .is-hidden { display: none; }
     .release-picker { display: flex; flex-direction: column; gap: 7px; }
     .release-picker label { color: var(--muted); font-size: 0.9rem; font-weight: 700; }
     .release-picker select {
@@ -160,7 +177,17 @@
               <option value="V1.0">V1.0</option>
             </select>
           </div>
-          <div id="install-s3"><esp-web-install-button manifest="./manifest-esp32-s3-v1.6.json?v=1"></esp-web-install-button></div>
+          <div class="requirement-check">
+            <input id="confirm-s3-flash" type="checkbox">
+            <label for="confirm-s3-flash">
+              <strong>I confirm this ESP32-S3 is an N16R8 board with 16 MB flash.</strong>
+              Boards with only 4 MB or 8 MB flash can appear to flash successfully but may not boot, create the setup hotspot, or open the setup page afterward.
+            </label>
+          </div>
+          <div id="s3-disabled-note" class="install-disabled-note">
+            Confirm the 16 MB flash requirement to enable ESP32-S3 installation.
+          </div>
+          <div id="install-s3" class="is-hidden"><esp-web-install-button manifest="./manifest-esp32-s3-v1.6.json?v=1"></esp-web-install-button></div>
           <code id="path-s3" class="firmware-path">firmware/ESP32-S3/V1.6/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_6.ino.merged.bin</code>
           <div>
             <ul>
@@ -181,7 +208,7 @@
         <h2>Before Flashing</h2>
         <div>
           <ul>
-            <li>Use an ESP32-C3 with one PN532 or an ESP32-S3 N16R8 with two PN532 modules, all in HSU mode</li>
+            <li>Use an ESP32-C3 with one PN532 or an ESP32-S3 N16R8 with 16 MB flash and two PN532 modules, all in HSU mode</li>
             <li>Both hardware variants connect to 2.4 GHz Wi-Fi only</li>
             <li>Snapmaker U1 with paxx12 Extended Firmware and external filament detection enabled</li>
             <li>Chrome or Edge and a data-capable USB cable</li>
@@ -238,8 +265,16 @@
       document.getElementById("path-" + family).textContent = release.path;
     }
 
+    function updateS3InstallGate() {
+      const confirmed = document.getElementById("confirm-s3-flash").checked;
+      document.getElementById("install-s3").classList.toggle("is-hidden", !confirmed);
+      document.getElementById("s3-disabled-note").classList.toggle("is-hidden", confirmed);
+    }
+
     document.getElementById("release-c3").addEventListener("change", () => selectRelease("c3"));
     document.getElementById("release-s3").addEventListener("change", () => selectRelease("s3"));
+    document.getElementById("confirm-s3-flash").addEventListener("change", updateS3InstallGate);
+    updateS3InstallGate();
   </script>
 </body>
 </html>
