@@ -2,6 +2,26 @@
 
 All public release changes are tracked here.
 
+## ESP32-S3 Dual-Reader V1.7
+
+- Keeps unlocked readers on the 30 ms polling interval after feeder activity
+  and releases feeder priority after four seconds
+- Sends fully read OpenSpool and QIDI metadata immediately after the filament
+  safety check and never sends UID-only data after a partial read
+- Retains the filament-loaded safety lock for all normal new-tag updates
+- Adds timestamped RFID-to-printer flow diagnostics and an expandable live
+  DebugSerial dashboard panel with pause, scroll, clear, and download controls
+- Adds always-visible Setup save controls so diagnostic settings can be saved
+  reliably on desktop and mobile
+- Retains V1.6 printer self-heal, signed OTA, BSSID, CARD_UID/CARD_TYPE, PN532
+  recovery, RF switching, and 16 MB dual-slot behavior
+
+Source and binaries:
+
+- [source/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ino](./source/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ino)
+- [firmware/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ino.merged.bin](./firmware/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ino.merged.bin)
+- [firmware/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ota.signed.bin](./firmware/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ota.signed.bin)
+
 ## ESP32-S3 Dual-Reader V1.2
 
 - Adds a filament-loaded safety lock: tag data is sent only after a fresh

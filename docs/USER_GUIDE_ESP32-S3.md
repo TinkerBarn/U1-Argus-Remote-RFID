@@ -1,6 +1,6 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-This guide describes the ESP32-S3 N16R8 `V1.6` version of the U1 Argus Remote
+This guide describes the ESP32-S3 N16R8 `V1.7` version of the U1 Argus Remote
 RFID reader. One controller operates two PN532 readers for the left and right
 spool positions and sends detected data to their assigned Snapmaker U1 Tool
 Heads.
@@ -8,7 +8,7 @@ Heads.
 ## Requirements
 
 - ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
-- Installed ESP32-S3 firmware `V1.6`
+- Installed ESP32-S3 firmware `V1.7`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -41,10 +41,10 @@ The S3 release combines two local readers in one controller:
   QIDI/MIFARE Classic tags.
 
 This separation keeps blocking NFC polling away from web and network
-processing. `V1.6` retains the fast hardware-tested RFID baseline, the
-permanent dual-slot layout for signed OTA firmware updates, safer card identity
-handling for newer printer firmware, and a self-heal path for printer channels
-that lose filament metadata after a successful tag update.
+processing. `V1.7` retains the permanent dual-slot layout for signed OTA
+firmware updates, safer card identity handling, and printer self-heal behavior.
+It keeps both unloaded readers on the fast polling interval after feeder
+activity and sends fully read tag metadata immediately.
 
 ## First Setup
 
@@ -68,13 +68,13 @@ open automatically, open the configuration address manually.
 | Left spool Tool Head | Printer channel for the local left PN532 |
 | Right spool Tool Head | Printer channel for the local right PN532 |
 | Additional dual reader | Optional link to another two-spool reader with its left/right Tool Heads |
-| Serial debug log | Additional diagnostic output; it can slow tag detection and is disabled by default |
+| Debug serial log | Additional serial output and a live dashboard log panel; it can slow tag detection and is disabled by default |
 | QIDI config upload / reset | Updates or removes custom QIDI material and manufacturer mappings |
 | Signed Firmware Update | Automatically checks the published S3 update catalog and installs a selected signed OTA file with visible progress |
 
 With debug disabled, essential serial information remains available, including
 the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
-status. `V1.6` additionally reports visible 2.4 GHz BSSIDs for the configured
+status. `V1.7` also reports visible 2.4 GHz BSSIDs for the configured
 SSID with their RSSI values when the list is initially scanned or changes.
 
 When opened from the first-boot captive portal, Setup intentionally shows only
@@ -83,9 +83,32 @@ configuration. Advanced sections such as QIDI config upload, signed firmware
 update, diagnostics, and additional-reader configuration are available after
 the device has joined Wi-Fi and Setup is opened from the normal dashboard.
 
+Setup provides Save-and-reboot controls at the beginning and end of the form,
+plus a fixed bottom save bar. Enable **Debug serial log**, save, and allow the
+reader to restart before looking for the live log on the dashboard.
+
+## DebugSerial Live Log
+
+When **Debug serial log** is enabled, the dashboard shows a live copy of the
+firmware's serial output. The panel can be expanded, paused, cleared, kept
+scrolled to the newest line, or downloaded as a text file. It uses a bounded
+RAM buffer; older lines are replaced when the device buffer fills, and the
+page marks that gap. Logs are not written to flash.
+
+The `FLOW` lines distinguish the important stages of a moving-tag read:
+
+- `UID detected` means the PN532 saw a tag, but its content may not yet be complete.
+- `OpenSpool content read=OK/FAILED` reports whether the payload was read.
+- `queue=accepted` and `dequeue ... wait=` show handoff to printer processing.
+- `SET BLOCKED` explains that the filament sensor state prevented an update.
+- `SET START` and `SET END` show the actual printer request and HTTP result.
+
+Keep the live log disabled for normal printing because verbose serial output
+can reduce RFID timing margin.
+
 ## Printer Send Compatibility
 
-`V1.6` sends `CARD_UID` with parsed QIDI and OpenSpool tag data so newer
+`V1.7` sends `CARD_UID` with parsed QIDI and OpenSpool tag data so newer
 printer-side integrations can identify the physical card. It also sends
 `CARD_TYPE` where supported:
 
@@ -97,9 +120,10 @@ printer-side integrations can identify the physical card. It also sends
 If the printer firmware rejects `CARD_TYPE`, the reader automatically retries
 the same update without `CARD_TYPE` and keeps using `CARD_UID`.
 
-The firmware does not automatically send UID-only data after a temporary tag
-read or parse failure. This avoids clearing existing printer filament data
-when a tag was only partially read while moving past the PN532.
+After a complete tag read, V1.7 sends the full mapped metadata immediately.
+It does not send UID-only data after a temporary tag read or parse failure.
+This avoids clearing existing printer filament data when a tag was only
+partially read while moving past the PN532.
 
 If the printer later reports a previously updated channel as cleared
 (`NONE`, no card UID, and zero temperatures), the reader can re-send the last
@@ -290,9 +314,9 @@ For the tested ESP32-S3 dual-reader board, use:
 | USB CDC On Boot | `Enabled` |
 | USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
 
-Open the complete `source/ESP32-S3/V1.6/` sketch folder in Arduino IDE so the
-included `partitions.csv`, `build_opt.h`, and `ota_public_key.h` are present
-for compilation. The permanent partition layout provides two `6.25 MiB` OTA
+Open the complete `source/ESP32-S3/V1.7/` sketch folder in Arduino IDE so the
+included `partitions.csv`, `build_opt.h`, `ota_public_key.h`, and
+`debug_log_*.h` headers are present for compilation. The permanent partition layout provides two `6.25 MiB` OTA
 application slots and approximately `3.4 MiB` LittleFS capacity for future
 features.
 
