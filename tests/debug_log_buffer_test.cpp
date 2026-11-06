@@ -4,7 +4,7 @@
 #include <cstdint>
 // Expose counters only to exercise the 32-bit wrap without writing 4 GiB.
 #define private public
-#include "../source/ESP32-S3/V1.7/debug_log_buffer.h"
+#include "../source/ESP32-S3/V1.8/debug_log_buffer.h"
 #undef private
 int main() {
   DebugLogBuffer<8> buffer;

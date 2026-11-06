@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 source = Path(
-    "source/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ino"
+    "source/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ino"
 ).read_text()
 
 start = source.index("static String configPageHtml(const String& msg) {")

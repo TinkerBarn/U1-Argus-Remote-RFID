@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-source = Path('source/ESP32-S3/V1.7/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7.ino').read_text()
+source = Path('source/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ino').read_text()
 start = source.index('static void handleValidMappedTagPayload(')
 end = source.index('// ------------------------------ Tag polling', start)
 handler = source[start:end]

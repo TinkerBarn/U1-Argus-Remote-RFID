@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
-const source=fs.readFileSync('source/ESP32-S3/V1.7/debug_log_panel.h','utf8');
+const source=fs.readFileSync('source/ESP32-S3/V1.8/debug_log_panel.h','utf8');
 const js=source.match(/<script>([\s\S]*?)<\/script>/)[1];
 const elements={},events={},timers=[],responses=[],requests=[];
 function element(id){return elements[id]??=(function(){const classes=new Set();return {textContent:'',hidden:true,checked:true,scrollHeight:42,scrollTop:0,attrs:{},classList:{contains:c=>classes.has(c),toggle(c,on){if(on)classes.add(c);else classes.delete(c);}},setAttribute(k,v){this.attrs[k]=v;},click(){this.clicked=true;}};})();}

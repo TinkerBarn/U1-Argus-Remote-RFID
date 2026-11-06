@@ -2,6 +2,27 @@
 
 All public release changes are tracked here.
 
+## ESP32-S3 Dual-Reader V1.8
+
+- Adds an optional persistent **OpenSpool UID-only Mode** in Setup, disabled by
+  default
+- Sends only `CARD_UID` for every PN532-readable tag while UID-only mode is
+  enabled, allowing paxx12/Spoolman to resolve the stored spool information
+- Skips QIDI authentication and NDEF/OpenSpool content reads in UID-only mode
+  for faster tag handling and support for otherwise unknown readable tags
+- Documents the paxx12, Spoolman server, and matching UID profile requirements
+  directly beside the setting
+- Adds a safe normal-mode fallback for a correctly read NTAG whose NDEF record
+  has length zero; transient read failures and malformed records remain rejected
+- Retains normal full-metadata QIDI/OpenSpool behavior, filament-loaded safety,
+  signed OTA, live DebugSerial log, and printer self-heal when the option is off
+
+Source and binaries:
+
+- [source/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ino](./source/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ino)
+- [firmware/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ino.merged.bin](./firmware/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ino.merged.bin)
+- [firmware/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ota.signed.bin](./firmware/ESP32-S3/V1.8/U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_8.ota.signed.bin)
+
 ## ESP32-S3 Dual-Reader V1.7
 
 - Keeps unlocked readers on the 30 ms polling interval after feeder activity

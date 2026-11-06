@@ -1,6 +1,6 @@
 # User Guide: ESP32-S3 Dual-Reader
 
-This guide describes the ESP32-S3 N16R8 `V1.7` version of the U1 Argus Remote
+This guide describes the ESP32-S3 N16R8 `V1.8` version of the U1 Argus Remote
 RFID reader. One controller operates two PN532 readers for the left and right
 spool positions and sends detected data to their assigned Snapmaker U1 Tool
 Heads.
@@ -8,7 +8,7 @@ Heads.
 ## Requirements
 
 - ESP32-S3 N16R8 with two PN532 modules in HSU/UART mode
-- Installed ESP32-S3 firmware `V1.7`
+- Installed ESP32-S3 firmware `V1.8`
 - Snapmaker U1 with Extended Firmware
 - **Filament Detection** set to **External** in the printer firmware settings
 - A **2.4 GHz** Wi-Fi network
@@ -41,10 +41,11 @@ The S3 release combines two local readers in one controller:
   QIDI/MIFARE Classic tags.
 
 This separation keeps blocking NFC polling away from web and network
-processing. `V1.7` retains the permanent dual-slot layout for signed OTA
+processing. `V1.8` retains the permanent dual-slot layout for signed OTA
 firmware updates, safer card identity handling, and printer self-heal behavior.
 It keeps both unloaded readers on the fast polling interval after feeder
-activity and sends fully read tag metadata immediately.
+activity and sends fully read tag metadata immediately. It also provides an
+optional UID-only mode for paxx12/Spoolman installations.
 
 ## First Setup
 
@@ -68,13 +69,14 @@ open automatically, open the configuration address manually.
 | Left spool Tool Head | Printer channel for the local left PN532 |
 | Right spool Tool Head | Printer channel for the local right PN532 |
 | Additional dual reader | Optional link to another two-spool reader with its left/right Tool Heads |
+| OpenSpool UID-only Mode | Sends only the UID of every readable tag so paxx12 can resolve filament data through Spoolman; disabled by default |
 | Debug serial log | Additional serial output and a live dashboard log panel; it can slow tag detection and is disabled by default |
 | QIDI config upload / reset | Updates or removes custom QIDI material and manufacturer mappings |
 | Signed Firmware Update | Automatically checks the published S3 update catalog and installs a selected signed OTA file with visible progress |
 
 With debug disabled, essential serial information remains available, including
 the setup hotspot, Wi-Fi status, a tag detection line, and printer transfer
-status. `V1.7` also reports visible 2.4 GHz BSSIDs for the configured
+status. `V1.8` also reports visible 2.4 GHz BSSIDs for the configured
 SSID with their RSSI values when the list is initially scanned or changes.
 
 When opened from the first-boot captive portal, Setup intentionally shows only
@@ -108,7 +110,7 @@ can reduce RFID timing margin.
 
 ## Printer Send Compatibility
 
-`V1.7` sends `CARD_UID` with parsed QIDI and OpenSpool tag data so newer
+`V1.8` sends `CARD_UID` with parsed QIDI and OpenSpool tag data so newer
 printer-side integrations can identify the physical card. It also sends
 `CARD_TYPE` where supported:
 
@@ -120,10 +122,15 @@ printer-side integrations can identify the physical card. It also sends
 If the printer firmware rejects `CARD_TYPE`, the reader automatically retries
 the same update without `CARD_TYPE` and keeps using `CARD_UID`.
 
-After a complete tag read, V1.7 sends the full mapped metadata immediately.
+After a complete tag read, V1.8 sends the full mapped metadata immediately.
 It does not send UID-only data after a temporary tag read or parse failure.
 This avoids clearing existing printer filament data when a tag was only
 partially read while moving past the PN532.
+
+In normal mode, a correctly read NTAG with a valid but empty NDEF record
+(`Len=0`) is treated as an intentional UID-only lookup tag. A failed memory
+read, missing NDEF structure, malformed record, or unsupported non-empty
+content does not activate this fallback.
 
 If the printer later reports a previously updated channel as cleared
 (`NONE`, no card UID, and zero temperatures), the reader can re-send the last
@@ -131,6 +138,27 @@ successfully sent tag payload for that spool as a self-heal repair. This repair
 is allowed both before and after the Tool Head filament sensor reports
 `filament_detected=true`. Normal new-tag changes are still only allowed while
 `filament_detected=false`.
+
+## OpenSpool UID-only Mode
+
+V1.8 adds **OpenSpool UID-only Mode** to Setup. It is disabled by default.
+When enabled, the reader stops after detecting a tag UID and sends a standard
+printer update containing the assigned channel and `CARD_UID` only. It does
+not authenticate QIDI data or read NDEF/OpenSpool filament information from
+the tag.
+
+Requirements:
+
+- Snapmaker U1 running paxx12 firmware with the Spoolman option enabled
+- A reachable Spoolman server
+- A filament/spool record in Spoolman whose UID exactly matches the detected tag
+
+This mode reduces the amount of RFID reading and data transfer, uses the
+filament information maintained in Spoolman, and can support otherwise unknown
+tags as long as the PN532 can detect their UID. Its limitation is intentional:
+without a matching Spoolman profile for that UID, no filament metadata can be
+resolved. Disable the setting to restore normal QIDI/OpenSpool content reading
+and the empty-NDEF NTAG fallback.
 
 ## Preferred BSSIDs
 
@@ -183,10 +211,13 @@ BSSID of the currently connected access point.
 ## Supported Tags
 
 - **OpenSpool / NTAG**: Reads OpenSpool NDEF content through the respective
-  reader and transfers material data to its Tool Head.
+  reader and transfers material data to its Tool Head. A valid empty NDEF
+  record can be sent as a UID-only lookup.
 - **QIDI / MIFARE Classic**: Authenticates and reads the QIDI data block,
   maps material, manufacturer, and color codes, and updates the relevant
   channel.
+- **UID-only mode**: Uses any ISO14443A tag that the PN532 can detect and sends
+  only its UID; filament data must be resolved by the printer/Spoolman setup.
 
 ## QIDI `officiall_filas_list.cfg`
 
@@ -314,7 +345,7 @@ For the tested ESP32-S3 dual-reader board, use:
 | USB CDC On Boot | `Enabled` |
 | USB Mode / Upload Mode | `Hardware CDC and JTAG` / `UART0 / Hardware CDC` |
 
-Open the complete `source/ESP32-S3/V1.7/` sketch folder in Arduino IDE so the
+Open the complete `source/ESP32-S3/V1.8/` sketch folder in Arduino IDE so the
 included `partitions.csv`, `build_opt.h`, `ota_public_key.h`, and
 `debug_log_*.h` headers are present for compilation. The permanent partition layout provides two `6.25 MiB` OTA
 application slots and approximately `3.4 MiB` LittleFS capacity for future
