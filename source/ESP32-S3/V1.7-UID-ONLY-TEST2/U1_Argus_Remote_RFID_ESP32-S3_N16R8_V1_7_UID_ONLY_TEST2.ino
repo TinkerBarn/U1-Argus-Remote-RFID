@@ -1,5 +1,5 @@
 /*
-  U1 Argus Remote RFID - ESP32-S3 N16R8 V1.7 NTAG UID TEST1
+  U1 Argus Remote RFID - ESP32-S3 N16R8 V1.7 UID ONLY TEST2
 
   Target: ESP32-S3 N16R8 + 2x PN532 (HSU/UART)
 
@@ -157,7 +157,7 @@ static SerialMirrorLogger DebugSerial;
 
 // ============================== Version ==============================
 static const char* FW_NAME = "U1 Argus Remote RFID";
-static const char* FW_VERSION = "V1.7-NTAG-UID-TEST1";
+static const char* FW_VERSION = "V1.7-UID-ONLY-TEST2";
 static const char* BOARD_LABEL = "ESP32-S3 N16R8";
 static const char* OTA_UPDATE_CATALOG_URL = "https://tinkerbarn.github.io/U1-Argus-Remote-RFID/updates/esp32-s3.json";
 static const size_t OTA_SIGNATURE_BYTES = 512;
@@ -376,10 +376,11 @@ struct Settings {
   char remoteReaders[REMOTE_READER_COUNT][96];
   uint8_t remoteReaderTools[REMOTE_READER_COUNT][READER_COUNT];
   bool debugSerial;
+  bool openSpoolUidOnly;
 };
 
 Settings gSettings = {
-  "", "", {"", ""}, "u1-argus-rfid", "192.168.1.10", DEFAULT_PRINTER_PORT, {0, 1}, {""}, {{0, 0}}, false
+  "", "", {"", ""}, "u1-argus-rfid", "192.168.1.10", DEFAULT_PRINTER_PORT, {0, 1}, {""}, {{0, 0}}, false, false
 };
 
 // ============================== Web ==============================
@@ -497,7 +498,7 @@ struct NfcQueueItem {
   uint8_t reader = 0;
   uint8_t uid[10] = {0};
   uint8_t uidLen = 0;
-  char source[12] = {0};
+  char source[20] = {0};
   char json[NFC_QUEUE_JSON_CAP] = {0};
 };
 
@@ -1750,6 +1751,7 @@ static void loadSettings() {
   uint8_t leftChannel = prefs.getUChar("channel_left", legacyChannel);
   uint8_t rightChannel = prefs.getUChar("channel_right", legacyChannel < 3 ? legacyChannel + 1 : 1);
   bool debugSerial = prefs.getBool("debug_serial", false);
+  bool openSpoolUidOnly = prefs.getBool("openspool_uid", false);
   if (port == 0) port = DEFAULT_PRINTER_PORT;
   if (!isValidPrinterAddress(ip)) ip = "192.168.1.10";
 
@@ -1766,6 +1768,7 @@ static void loadSettings() {
   gSettings.channels[0] = (leftChannel > 3) ? 0 : leftChannel;
   gSettings.channels[1] = (rightChannel > 3) ? 1 : rightChannel;
   gSettings.debugSerial = debugSerial;
+  gSettings.openSpoolUidOnly = openSpoolUidOnly;
   gDebugSerialEnabled = debugSerial;
   for (uint8_t i = 0; i < REMOTE_READER_COUNT; i++) {
     String key = String("reader_") + String(i + 2);
@@ -1798,6 +1801,7 @@ static void saveSettings() {
   prefs.putUChar("channel_left", gSettings.channels[0]);
   prefs.putUChar("channel_right", gSettings.channels[1]);
   prefs.putBool("debug_serial", gSettings.debugSerial);
+  prefs.putBool("openspool_uid", gSettings.openSpoolUidOnly);
   for (uint8_t i = 0; i < REMOTE_READER_COUNT; i++) {
     String key = String("reader_") + String(i + 2);
     prefs.putString(key.c_str(), gSettings.remoteReaders[i]);
@@ -2797,7 +2801,7 @@ static void handleStateApi() {
 static String configPageHtml(const String& msg) {
   String body;
   const bool fullSetup = !portalMode;
-  body.reserve(fullSetup ? 15000 : 8500);
+  body.reserve(fullSetup ? 17000 : 10500);
   body += F("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>");
   body += F("<title>U1 Argus RFID Setup</title><style>:root{--bg:#f4efe5;--panel:#fffaf1;--card:#fffdf8;--ink:#18231e;--muted:#5d6a62;--line:#d8cdb7;--strong:#bda982;--accent:#b85c38;--accent2:#2f5d50}*{box-sizing:border-box}body{font-family:'Trebuchet MS',Verdana,sans-serif;max-width:840px;margin:0 auto;padding:18px 14px 96px;background:radial-gradient(circle at top,#fff9ee 0,#f4efe5 48%,#ece3d3 100%);color:var(--ink)}.shell{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 18px 44px rgba(67,49,26,.10)}h2,h3,p{margin-top:0}label{display:block;margin-top:10px;font-weight:700}input,select{width:100%;padding:10px 12px;margin-top:5px;border:1px solid #cdbfa6;border-radius:10px;background:#fffdf8}input[type=checkbox]{width:auto;margin:0 8px 0 0}.checkRow{display:flex;align-items:center;margin-top:8px;font-weight:700}.warn{display:block;margin-top:8px;padding:9px 11px;border-radius:10px;background:#fff2d6;border:1px solid #e3bd72;color:#6d4a14;line-height:1.35}.note{display:block;margin-top:10px;padding:9px 11px;border-radius:10px;background:#edf4ef;border:1px solid #c8dbcf;color:#2f5d50;line-height:1.35}button,.btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin:0;padding:8px 12px;border:none;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:.92rem;line-height:1.1}.btn.alt,button.alt{background:var(--accent2)}.btn.soft,button.soft{background:#e9dcc7;color:#30463d}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button,.actions .btn{margin-top:0}.saveTop{margin:14px 0 2px}.saveTop button{width:100%;min-height:44px;font-size:1rem}.saveDock{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(255,250,241,.96);border-top:1px solid var(--strong);box-shadow:0 -5px 18px rgba(67,49,26,.15);backdrop-filter:blur(8px)}.saveDock button{width:min(812px,100%);min-height:46px;font-size:1rem}small,.muted{color:var(--muted)}code{background:#efe4d0;padding:2px 6px;border-radius:6px}.help{display:block;margin-top:5px;line-height:1.35}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.topRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.msg{padding:11px 13px;border-radius:11px;background:#f7e9d4;border:1px solid #e7d0ac;margin:14px 0}.group{margin-top:16px;padding:14px;border:1px solid var(--strong);border-left:5px solid var(--accent2);border-radius:14px;background:var(--card);box-shadow:0 4px 14px rgba(67,49,26,.04)}.group h3{font-size:1.02rem;margin:0 0 6px;padding-bottom:7px;border-bottom:1px solid #eadfca}.groupLead{margin-bottom:8px}.inlineForm{margin-top:10px;padding-top:8px;border-top:1px dashed #e0d2b8}.inlineForm input{margin-bottom:8px}.otaProgress{margin-top:12px}.otaProgress progress{display:block;width:100%;height:14px;margin:8px 0;accent-color:var(--accent2)}.otaProgressText{display:block;font-weight:700;color:var(--accent2)}button:disabled{cursor:wait;opacity:.55}@media(max-width:640px){.shell{padding:16px}.actions button,.actions .btn{width:100%;text-align:center}}</style></head><body>");
   body += F("<div class='shell'>");
@@ -2835,6 +2839,13 @@ static String configPageHtml(const String& msg) {
   body += F("</small>");
   body += String(F("<label>")) + "Snapmaker U1 Port" + F("</label><input name='printer_port' type='number' min='1' max='65535' required value='"); body += String(gSettings.printerPort); body += F("'>");
   body += F("</div>");
+  body += F("<div class='group'><h3>OpenSpool UID-only Mode</h3><label class='checkRow'><input type='checkbox' name='openspool_uid_only' value='1'");
+  if (gSettings.openSpoolUidOnly) body += F(" checked");
+  body += F(">Enable OpenSpool UID-only Mode</label>");
+  body += F("<small class='warn'><b>Important:</b> When enabled, only the UID of every detected tag is sent to the printer. No filament information stored on the tag is read or transmitted.</small>");
+  body += F("<small class='note'><b>Requirements:</b> A Snapmaker U1 running paxx12 firmware with the Spoolman option enabled, a reachable Spoolman server, and a filament/spool entry whose UID matches the detected tag.</small>");
+  body += F("<small class='note'><b>Advantage:</b> Reading and transmission are faster, the information stored in Spoolman is used, and otherwise unknown tags are supported as long as their UID can be read.</small>");
+  body += F("<small class='warn'><b>Disadvantage:</b> A matching Spoolman profile must exist for every UID that is used.</small></div>");
   if (fullSetup) {
   body += F("<div class='group'><h3>Diagnostics</h3><label class='checkRow'><input type='checkbox' name='debug_serial' value='1'");
   if (gSettings.debugSerial) body += F(" checked");
@@ -3262,6 +3273,7 @@ static void setupPortalRoutes() {
     printerIp = normalizedHostAddress(printerIp);
     String portStr = web.arg("printer_port"); portStr.trim();
     bool debugSerial = web.hasArg("debug_serial");
+    bool openSpoolUidOnly = web.hasArg("openspool_uid_only");
     String channelStr[READER_COUNT];
     int channels[READER_COUNT];
     for (uint8_t reader = 0; reader < READER_COUNT; reader++) {
@@ -3331,6 +3343,7 @@ static void setupPortalRoutes() {
     cachedPrinterResolveOk = false;
     gSettings.printerPort = (uint16_t)portVal;
     gSettings.debugSerial = debugSerial;
+    gSettings.openSpoolUidOnly = openSpoolUidOnly;
     gDebugSerialEnabled = debugSerial;
     for (uint8_t reader = 0; reader < READER_COUNT; reader++) {
       gSettings.channels[reader] = (uint8_t)channels[reader];
@@ -4894,6 +4907,20 @@ static void nfcPollingTask(void* /*pvParam*/) {
       }
       if (shouldSkipRecentTagContent(uid, uidLen)) continue;
 
+      if (gSettings.openSpoolUidOnly) {
+        if (NFC_DIAG_SERIAL) {
+          Serial.printf("[NFC %s] OpenSpool UID-only mode uid=%s\n",
+                        READER_LABELS[reader],
+                        bytesToHexString(uid, uidLen).c_str());
+        }
+        pn532ReleaseTargets();
+        releaseReaderFocusAfterReadAttempt();
+        if (shouldPublishTagContent(reader, "CARD_UID_ONLY", "", uid, uidLen)) {
+          enqueueNfcTag(reader, "CARD_UID_ONLY", "", uid, uidLen);
+        }
+        continue;
+      }
+
       if (uidLen == 4) {
         String qidiJson;
         bool hasQidiTag = readQidiFromCurrentTag(uid, uidLen, qidiJson);
@@ -5014,7 +5041,7 @@ void setup() {
   }
   selectReader(0);
   if (isDebugSerialEnabled()) {
-    Serial.printf("[CONFIG] SSID=%s, pass=%u chars, host=%s%s, printer=%s:%u (%s), left_channel=%u, left_tool_head=%u, right_channel=%u, right_tool_head=%u, setup_ap=%s, debug_serial=%u\n",
+    Serial.printf("[CONFIG] SSID=%s, pass=%u chars, host=%s%s, printer=%s:%u (%s), left_channel=%u, left_tool_head=%u, right_channel=%u, right_tool_head=%u, setup_ap=%s, debug_serial=%u, openspool_uid_only=%u\n",
                   strlen(gSettings.wifiSsid) ? gSettings.wifiSsid : "(empty)",
                   (unsigned)strlen(gSettings.wifiPass),
                   strlen(gSettings.hostname) ? gSettings.hostname : "(empty)",
@@ -5027,7 +5054,8 @@ void setup() {
                   (unsigned)gSettings.channels[1],
                   (unsigned)(gSettings.channels[1] + 1),
                   setupApSsid(),
-                  gSettings.debugSerial ? 1 : 0);
+                  gSettings.debugSerial ? 1 : 0,
+                  gSettings.openSpoolUidOnly ? 1 : 0);
     Serial.printf("[QIDI] cfg=%s, materials=%u, vendors=%u\n",
                   gQidiCustomConfig ? "custom" : "built-in",
                   (unsigned)(gQidiCustomConfig ? gQidiMaterialCount : (sizeof(DEFAULT_QIDI_MATERIALS) / sizeof(DEFAULT_QIDI_MATERIALS[0]))),

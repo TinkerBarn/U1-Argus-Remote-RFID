@@ -3,11 +3,11 @@ from pathlib import Path
 
 
 source = Path(
-    "source/ESP32-S3/V1.7-NTAG-UID-TEST1/"
-    "U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7_NTAG_UID_TEST1.ino"
+    "source/ESP32-S3/V1.7-UID-ONLY-TEST2/"
+    "U1_Argus_Remote_RFID_ESP32-S3_N16R8_V1_7_UID_ONLY_TEST2.ino"
 ).read_text()
 
-assert 'static const char* FW_VERSION = "V1.7-NTAG-UID-TEST1";' in source
+assert 'static const char* FW_VERSION = "V1.7-UID-ONLY-TEST2";' in source
 
 read_start = source.index("static bool readOpenSpoolFromDetectedTag(")
 read_end = source.index("static void processPrinterPolling()", read_start)
